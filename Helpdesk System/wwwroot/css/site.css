@@ -1,0 +1,172 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f5f6f8;
+    color: #222;
+}
+
+a {
+    color: #1f4f82;
+    text-decoration: none;
+}
+
+    a:hover {
+        text-decoration: underline;
+    }
+
+.app-header {
+    background-color: #ffffff;
+    border-bottom: 1px solid #ddd;
+}
+
+.app-nav {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.app-nav__brand a {
+    font-size: 20px;
+    font-weight: bold;
+    color: #222;
+}
+
+.app-nav__links {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.app-nav__user {
+    color: #555;
+    font-size: 14px;
+}
+
+.app-nav__logout-form {
+    margin: 0;
+}
+
+.link-button {
+    padding: 0;
+    border: none;
+    background: none;
+    color: #1f4f82;
+    font: inherit;
+    cursor: pointer;
+}
+
+    .link-button:hover {
+        text-decoration: underline;
+    }
+
+.app-main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 24px;
+    min-height: calc(100vh - 130px);
+}
+
+.app-footer {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px 24px;
+    color: #666;
+    font-size: 14px;
+    border-top: 1px solid #ddd;
+}
+
+.auth-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 70vh;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    padding: 32px;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+.auth-card h1 {
+    margin: 0 0 8px 0;
+    font-size: 26px;
+    text-align: center;
+}
+
+.auth-card h2 {
+    margin: 0 0 24px 0;
+    font-size: 20px;
+    font-weight: normal;
+    text-align: center;
+    color: #555;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label,
+.form-check label {
+    font-weight: bold;
+}
+
+.form-group input {
+    padding: 10px 12px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    font-size: 15px;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #1f4f82;
+}
+
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.primary-button {
+    padding: 11px 16px;
+    border: none;
+    border-radius: 4px;
+    background-color: #1f4f82;
+    color: #ffffff;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.primary-button:hover {
+    background-color: #173c63;
+}
+
+.validation-summary {
+    color: #b00020;
+}
+
+.field-validation {
+    color: #b00020;
+    font-size: 14px;
+}
