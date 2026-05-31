@@ -6,13 +6,19 @@
 
 <h1>Zgłoszenia</h1>
 
+<div class="mb-3">
+    <a asp-action="Create" class="btn btn-primary">
+        Nowe zgłoszenie
+    </a>
+</div>
+
 @if (!Model.Any())
 {
     <p>Brak zgłoszeń.</p>
 }
 else
 {
-    <table class="table">
+    <table class="table table-striped">
         <thead>
             <tr>
                 <th>ID</th>
@@ -20,6 +26,7 @@ else
                 <th>Status</th>
                 <th>Priorytet</th>
                 <th>Data utworzenia</th>
+                <th>Akcje</th>
             </tr>
         </thead>
         <tbody>
@@ -27,10 +34,27 @@ else
             {
                 <tr>
                     <td>@ticket.Id</td>
-                    <td>@ticket.Title</td>
+
+                    <td>
+                        <a asp-action="Details"
+                               asp-route-id="@ticket.Id">
+                            @ticket.Title
+                        </a>
+                    </td>
+
                     <td>@ticket.Status?.Name</td>
+
                     <td>@ticket.Priority?.Name</td>
+
                     <td>@ticket.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+
+                    <td>
+                        <a asp-action="Details"
+                               asp-route-id="@ticket.Id"
+                               class="btn btn-sm btn-outline-primary">
+                            Szczegóły
+                        </a>
+                    </td>
                 </tr>
             }
         </tbody>

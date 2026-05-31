@@ -1,0 +1,27 @@
+﻿@model Helpdesk_System.Models.Entities.Ticket
+
+@{
+    ViewData["Title"] = "Szczegóły zgłoszenia";
+}
+
+<h1>Szczegóły zgłoszenia</h1>
+
+<div class="mb-3">
+    <a asp-action="Index" class="btn btn-secondary">Powrót</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <h3>@Model.Title</h3>
+
+        <p><strong>ID:</strong> @Model.Id</p>
+        <p><strong>Status:</strong> @Model.Status?.Name</p>
+        <p><strong>Priorytet:</strong> @Model.Priority?.Name</p>
+        <p><strong>Kategoria:</strong> @(Model.Category?.Name ?? "Brak")</p>
+        <p><strong>Dział:</strong> @(Model.Department?.Name ?? "Brak")</p>
+        <p><strong>Opis:</strong> @(Model.Description ?? "Brak opisu")</p>
+        <p><strong>Data utworzenia:</strong> @Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</p>
+        <p><strong>Zgłaszający:</strong> @Model.Requestor?.FirstName @Model.Requestor?.LastName</p>
+        <p><strong>Agent:</strong> @(Model.Agent == null ? "Nieprzypisany" : $"{Model.Agent.FirstName} {Model.Agent.LastName}")</p>
+    </div>
+</div>
