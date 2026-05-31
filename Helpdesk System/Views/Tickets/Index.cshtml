@@ -1,0 +1,38 @@
+﻿@model IEnumerable<Helpdesk_System.Models.Entities.Ticket>
+
+@{
+    ViewData["Title"] = "Zgłoszenia";
+}
+
+<h1>Zgłoszenia</h1>
+
+@if (!Model.Any())
+{
+    <p>Brak zgłoszeń.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tytuł</th>
+                <th>Status</th>
+                <th>Priorytet</th>
+                <th>Data utworzenia</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var ticket in Model)
+            {
+                <tr>
+                    <td>@ticket.Id</td>
+                    <td>@ticket.Title</td>
+                    <td>@ticket.Status?.Name</td>
+                    <td>@ticket.Priority?.Name</td>
+                    <td>@ticket.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

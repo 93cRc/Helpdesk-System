@@ -7,60 +7,57 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration
-	.SetBasePath(builder.Environment.ContentRootPath)
-	.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .SetBasePath(builder.Environment.ContentRootPath)
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
 #if DEBUG
-	.AddJsonFile("appsettings.Dev.json", optional: true, reloadOnChange: true)
+    .AddJsonFile("appsettings.Dev.json", optional: true, reloadOnChange: true)
 #else
-    .AddJsonFile("appsettings.Prod.json", optional: true, reloadOnChange: true)
+	.AddJsonFile("appsettings.Prod.json", optional: true, reloadOnChange: true)
 #endif
-	.AddEnvironmentVariables();
+    .AddEnvironmentVariables();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-	?? throw new InvalidOperationException("Brak connection stringa o nazwie 'DefaultConnection'.");
+    ?? throw new InvalidOperationException("Brak connection stringa o nazwie 'DefaultConnection'.");
 
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<HelpdeskSystemDbContext>(options => {
-	options.UseMySql(
-		connectionString,
-		ServerVersion.AutoDetect(connectionString));
+    options.UseMySql(
+        connectionString,
+        ServerVersion.AutoDetect(connectionString));
 
 #if DEBUG
-	options.EnableSensitiveDataLogging();
-	options.EnableDetailedErrors();
+    options.EnableSensitiveDataLogging();
+    options.EnableDetailedErrors();
 #endif
 });
 
 builder.Services
-	.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-	.AddCookie(options => {
-		options.LoginPath = "/Accounts/Login";
-		options.LogoutPath = "/Accounts/Logout";
-		options.AccessDeniedPath = "/Accounts/AccessDenied";
+    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options => {
+        options.LoginPath = "/Accounts/Login";
+        options.LogoutPath = "/Accounts/Logout";
+        options.AccessDeniedPath = "/Accounts/AccessDenied";
 
-		options.Cookie.Name = "HelpdeskSystem.Auth";
-		options.Cookie.HttpOnly = true;
-		options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.Name = "HelpdeskSystem.Auth";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SameSite = SameSiteMode.Lax;
 
-		options.SlidingExpiration = true;
-		options.ExpireTimeSpan = TimeSpan.FromHours(8);
-	});
+        options.SlidingExpiration = true;
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+    });
 
 builder.Services.AddAuthorization();
 
-// Add services to the container.
-builder.Services.AddControllersWithViews();
-
 builder.Services.AddScoped<IPasswordHasherService, PasswordHasherService>();
+builder.Services.AddScoped<ITicketService, TicketService>(); //-DODANE JK 31.05
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment()) {
-	app.UseExceptionHandler("/Home/Error");
-	// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-	app.UseHsts();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
 }
 
 app.UseHttpsRedirection();

@@ -1,5 +1,48 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model Helpdesk_System.ViewModels.Tickets.CreateTicketViewModel
+
 @{
+	ViewData["Title"] = "Nowe zgłoszenie";
 }
+
+<h1>Nowe zgłoszenie</h1>
+
+<form asp-action="Create" method="post">
+	<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+	<div class="mb-3">
+		<label asp-for="Title" class="form-label">Tytuł</label>
+		<input asp-for="Title" class="form-control" />
+		<span asp-validation-for="Title" class="text-danger"></span>
+	</div>
+
+	<div class="mb-3">
+		<label asp-for="Description" class="form-label">Opis</label>
+		<textarea asp-for="Description" class="form-control" rows="5"></textarea>
+		<span asp-validation-for="Description" class="text-danger"></span>
+	</div>
+
+	<div class="mb-3">
+		<label asp-for="DepartmentId" class="form-label">Dział</label>
+		<select asp-for="DepartmentId" asp-items="Model.Departments" class="form-control">
+			<option value="">-- wybierz dział --</option>
+		</select>
+	</div>
+
+	<div class="mb-3">
+		<label asp-for="CategoryId" class="form-label">Kategoria</label>
+		<select asp-for="CategoryId" asp-items="Model.Categories" class="form-control">
+			<option value="">-- wybierz kategorię --</option>
+		</select>
+	</div>
+
+	<div class="mb-3">
+		<label asp-for="PriorityId" class="form-label">Priorytet</label>
+		<select asp-for="PriorityId" asp-items="Model.Priorities" class="form-control">
+			<option value="">-- wybierz priorytet --</option>
+		</select>
+		<span asp-validation-for="PriorityId" class="text-danger"></span>
+	</div>
+
+	<button type="submit" class="btn btn-primary">Dodaj zgłoszenie</button>
+	<a asp-action="Index" class="btn btn-secondary">Wróć</a>
+</form>
