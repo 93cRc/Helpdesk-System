@@ -51,4 +51,53 @@
         <p><strong>Zgłaszający:</strong> @Model.Requestor?.FirstName @Model.Requestor?.LastName</p>
         <p><strong>Agent:</strong> @(Model.Agent == null ? "Nieprzypisany" : $"{Model.Agent.FirstName} {Model.Agent.LastName}")</p>
     </div>
+
+    <hr />
+
+    <h3>Komentarze</h3>
+
+    @if (Model.Comments.Any())
+    {
+        @foreach (var comment in Model.Comments.OrderByDescending(c => c.CreatedAt))
+        {
+            <div class="card mb-2">
+                <div class="card-body">
+                    <strong>
+                        @comment.User?.FirstName @comment.User?.LastName
+                    </strong>
+
+                    <small class="text-muted">
+                        (@comment.CreatedAt.ToString("yyyy-MM-dd HH:mm"))
+                    </small>
+
+                    <p class="mt-2 mb-0">
+                        @comment.Content
+                    </p>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <p>Brak komentarzy.</p>
+    }
+
+    <hr />
+
+    <h4>Dodaj komentarz</h4>
+
+    <form asp-action="AddComment" method="post">
+        <input type="hidden" name="ticketId" value="@Model.Id" />
+
+        <div class="mb-3">
+            <textarea name="content"
+                      class="form-control"
+                      rows="4"
+                      placeholder="Wpisz komentarz..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-success">
+            Dodaj komentarz
+        </button>
+    </form>
 </div>

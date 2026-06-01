@@ -14,25 +14,10 @@ namespace Helpdesk_System.Services
             _context = context;
         }
 
-        /*
+
+
         public async Task<List<Ticket>> GetAllAsync()
         {
-            return await _context.Tickets
-                .Include(t => t.Requestor)
-                .Include(t => t.Agent)
-                .Include(t => t.Status)
-                .Include(t => t.Priority)
-                .Include(t => t.Category)
-                .ToListAsync();
-        }
-        */
-
-        public async Task<List<Ticket>> GetAllAsync() //TEST
-        {
-            var count = await _context.Tickets.CountAsync();
-
-            Console.WriteLine($"LICZBA TICKETÓW: {count}");
-
             return await _context.Tickets
                 .Include(t => t.Requestor)
                 .Include(t => t.Agent)
@@ -50,6 +35,9 @@ namespace Helpdesk_System.Services
                 .Include(t => t.Status)
                 .Include(t => t.Priority)
                 .Include(t => t.Category)
+                .Include(t => t.Department)
+                .Include(t => t.Comments)
+                    .ThenInclude(c => c.User)
                 .FirstOrDefaultAsync(t => t.Id == id);
         }
 

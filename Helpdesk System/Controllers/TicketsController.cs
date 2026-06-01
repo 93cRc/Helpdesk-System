@@ -56,6 +56,41 @@ ViewBag.Statuses = statuses;
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddComment(int ticketId, string content, bool isInternal = false)
+        {
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                return RedirectToAction(nameof(Details), new { id = ticketId });
+            }
+
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                return Unauthorized();
+            }
+
+            var ticketExists = await _context.Tickets.AnyAsync(t => t.Id == ticketId);
+
+            if (!ticketExists)
+            {
+                return NotFound();
+            }
+
+            var comment = new Comment
+            {
+                TicketId = ticketId,
+                UserId = int.Parse(userIdClaim),
+                Content = content,
+                IsInternal = isInternal,
+                CreatedAt = DateTime.Now
+            };
+
+            _context.Comments.Add(comment);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Details), new { id = ticketId });
+        }
         public async Task<IActionResult> ChangeStatus(int ticketId, int statusId)
         {
             var ticket = await _context.Tickets
