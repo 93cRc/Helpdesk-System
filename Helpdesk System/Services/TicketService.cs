@@ -16,7 +16,7 @@ namespace Helpdesk_System.Services
 
 
 
-        public async Task<List<Ticket>> GetAllAsync(int? statusId = null, int? priorityId = null)
+        public async Task<List<Ticket>> GetAllAsync(int? statusId = null, int? priorityId = null, int? agentId = null)
         {
             var query = _context.Tickets
                 .Include(t => t.Requestor)
@@ -34,6 +34,11 @@ namespace Helpdesk_System.Services
             if (priorityId.HasValue)
             {
                 query = query.Where(t => t.PriorityId == priorityId.Value);
+            }
+
+            if (agentId.HasValue)
+            {
+                query = query.Where(t => t.AgentId == agentId.Value);
             }
 
             return await query

@@ -4,7 +4,7 @@ namespace Helpdesk_System.Services.Interfaces
 {
     public interface ITicketService
     {
-        Task<List<Ticket>> GetAllAsync(int? statusId = null, int? priorityId = null);
+        Task<List<Ticket>> GetAllAsync(int? statusId = null, int? priorityId = null, int? agentId = null);
         Task<Ticket?> GetByIdAsync(int id);
         Task CreateAsync(Ticket ticket);
         Task UpdateAsync(Ticket ticket);

@@ -22,9 +22,9 @@ namespace Helpdesk_System.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index(int? statusId, int? priorityId)
+        public async Task<IActionResult> Index(int? statusId, int? priorityId, int? agentId)
         {
-            var tickets = await _ticketService.GetAllAsync(statusId, priorityId);
+            var tickets = await _ticketService.GetAllAsync(statusId, priorityId, agentId);
 
             ViewBag.Statuses = await _context.Statuses
                 .Where(s => s.IsActive)
@@ -36,8 +36,15 @@ namespace Helpdesk_System.Controllers
                 .OrderBy(p => p.SortOrder)
                 .ToListAsync();
 
+            ViewBag.Agents = await _context.Users
+                .Include(u => u.Role)
+                .Where(u => u.Role.Name == "Agent" && u.IsActive)
+                .OrderBy(u => u.LastName)
+                .ToListAsync();
+
             ViewBag.SelectedStatusId = statusId;
             ViewBag.SelectedPriorityId = priorityId;
+            ViewBag.SelectedAgentId = agentId;
 
             return View(tickets);
         }
