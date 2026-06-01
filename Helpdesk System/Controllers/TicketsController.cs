@@ -40,12 +40,25 @@ namespace Helpdesk_System.Controllers
             .OrderBy(x => x.SortOrder)
             .ToListAsync();
 
-ViewBag.Statuses = statuses;
+           ViewBag.Statuses = statuses;
+
+            var agents = await _context.Users
+            .Include(u => u.Role)
+            .Where(u => u.Role.Name == "Agent" && u.IsActive)
+            .OrderBy(u => u.LastName)
+            .ToListAsync();
+
+            // 02.06.2026 - brak użytkowników z rolą Agent w bazie testowej.
+            // Funkcjonalność przypisywania została zaimplementowana i wymaga
+            // jedynie dodania kont z rolą Agent.
+
+            ViewBag.Agents = agents;
 
             return View(ticket);
         }
 
-        [HttpGet]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create()
         {
             var model = new CreateTicketViewModel();
@@ -91,6 +104,9 @@ ViewBag.Statuses = statuses;
 
             return RedirectToAction(nameof(Details), new { id = ticketId });
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangeStatus(int ticketId, int statusId)
         {
             var ticket = await _context.Tickets
@@ -109,6 +125,26 @@ ViewBag.Statuses = statuses;
             return RedirectToAction(nameof(Details), new { id = ticketId });
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AssignAgent(int ticketId, int? agentId)
+        {
+            var ticket = await _context.Tickets
+                .FirstOrDefaultAsync(t => t.Id == ticketId);
+
+            if (ticket == null)
+            {
+                return NotFound();
+            }
+
+            ticket.AgentId = agentId;
+            ticket.AssignedAt = DateTime.Now;
+            ticket.UpdatedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Details), new { id = ticketId });
+        }
 
         public async Task<IActionResult> Create(CreateTicketViewModel model)
         {

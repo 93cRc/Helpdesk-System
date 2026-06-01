@@ -49,7 +49,42 @@
         <p><strong>Opis:</strong> @(Model.Description ?? "Brak opisu")</p>
         <p><strong>Data utworzenia:</strong> @Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</p>
         <p><strong>Zgłaszający:</strong> @Model.Requestor?.FirstName @Model.Requestor?.LastName</p>
-        <p><strong>Agent:</strong> @(Model.Agent == null ? "Nieprzypisany" : $"{Model.Agent.FirstName} {Model.Agent.LastName}")</p>
+        <p>
+            <strong>Agent:</strong>
+            @(Model.Agent == null
+                ? "Nieprzypisany"
+                : $"{Model.Agent.FirstName} {Model.Agent.LastName}")
+        </p>
+
+        <form asp-action="AssignAgent" method="post">
+            <input type="hidden" name="ticketId" value="@Model.Id" />
+
+            <select name="agentId" class="form-control">
+                <option value="">-- wybierz agenta --</option>
+
+                @foreach (var agent in ViewBag.Agents)
+                {
+                    if (Model.AgentId == agent.Id)
+                    {
+                        <option value="@agent.Id" selected>
+                            @agent.FirstName @agent.LastName
+                        </option>
+                    }
+                    else
+                    {
+                        <option value="@agent.Id">
+                            @agent.FirstName @agent.LastName
+                        </option>
+                    }
+                }
+            </select>
+
+            <br />
+
+            <button type="submit" class="btn btn-primary">
+                Przypisz agenta
+            </button>
+        </form>
     </div>
 
     <hr />
