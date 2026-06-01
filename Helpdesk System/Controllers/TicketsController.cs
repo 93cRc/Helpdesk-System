@@ -36,6 +36,11 @@ namespace Helpdesk_System.Controllers
             {
                 return NotFound();
             }
+            var statuses = await _context.Statuses
+            .OrderBy(x => x.SortOrder)
+            .ToListAsync();
+
+ViewBag.Statuses = statuses;
 
             return View(ticket);
         }
@@ -51,6 +56,25 @@ namespace Helpdesk_System.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangeStatus(int ticketId, int statusId)
+        {
+            var ticket = await _context.Tickets
+                .FirstOrDefaultAsync(x => x.Id == ticketId);
+
+            if (ticket == null)
+            {
+                return NotFound();
+            }
+
+            ticket.StatusId = statusId;
+            ticket.UpdatedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Details), new { id = ticketId });
+        }
+
+
         public async Task<IActionResult> Create(CreateTicketViewModel model)
         {
             if (!ModelState.IsValid)
@@ -70,6 +94,7 @@ namespace Helpdesk_System.Controllers
                 .Where(s => s.IsActive)
                 .OrderBy(s => s.SortOrder)
                 .FirstOrDefaultAsync();
+
 
             if (status == null)
             {

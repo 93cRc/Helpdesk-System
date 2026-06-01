@@ -16,6 +16,33 @@
 
         <p><strong>ID:</strong> @Model.Id</p>
         <p><strong>Status:</strong> @Model.Status?.Name</p>
+        <form asp-action="ChangeStatus" method="post">
+            <input type="hidden" name="ticketId" value="@Model.Id" />
+
+            <select name="statusId" class="form-control">
+                @foreach (var status in ViewBag.Statuses)
+                {
+                    if (status.Id == Model.StatusId)
+                    {
+                        <option value="@status.Id" selected>
+                            @status.Name
+                        </option>
+                    }
+                    else
+                    {
+                        <option value="@status.Id">
+                            @status.Name
+                        </option>
+                    }
+                }
+            </select>
+
+            <br />
+
+            <button type="submit" class="btn btn-primary">
+                Zmień status
+            </button>
+        </form>
         <p><strong>Priorytet:</strong> @Model.Priority?.Name</p>
         <p><strong>Kategoria:</strong> @(Model.Category?.Name ?? "Brak")</p>
         <p><strong>Dział:</strong> @(Model.Department?.Name ?? "Brak")</p>
