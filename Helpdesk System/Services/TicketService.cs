@@ -16,14 +16,28 @@ namespace Helpdesk_System.Services
 
 
 
-        public async Task<List<Ticket>> GetAllAsync()
+        public async Task<List<Ticket>> GetAllAsync(int? statusId = null, int? priorityId = null)
         {
-            return await _context.Tickets
+            var query = _context.Tickets
                 .Include(t => t.Requestor)
                 .Include(t => t.Agent)
                 .Include(t => t.Status)
                 .Include(t => t.Priority)
                 .Include(t => t.Category)
+                .AsQueryable();
+
+            if (statusId.HasValue)
+            {
+                query = query.Where(t => t.StatusId == statusId.Value);
+            }
+
+            if (priorityId.HasValue)
+            {
+                query = query.Where(t => t.PriorityId == priorityId.Value);
+            }
+
+            return await query
+                .OrderByDescending(t => t.CreatedAt)
                 .ToListAsync();
         }
 
@@ -36,8 +50,19 @@ namespace Helpdesk_System.Services
                 .Include(t => t.Priority)
                 .Include(t => t.Category)
                 .Include(t => t.Department)
+
                 .Include(t => t.Comments)
                     .ThenInclude(c => c.User)
+
+                .Include(t => t.History)
+                    .ThenInclude(h => h.Status)
+
+                .Include(t => t.History)
+                    .ThenInclude(h => h.Agent)
+
+                .Include(t => t.History)
+                    .ThenInclude(h => h.ChangedByUser)
+
                 .FirstOrDefaultAsync(t => t.Id == id);
         }
 

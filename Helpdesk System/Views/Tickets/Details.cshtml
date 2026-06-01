@@ -135,4 +135,46 @@
             Dodaj komentarz
         </button>
     </form>
+    <hr />
+
+    <h3>Historia zmian</h3>
+
+    @if (Model.History.Any())
+    {
+        @foreach (var history in Model.History.OrderByDescending(h => h.HistoryCreatedAt))
+        {
+            <div class="card mb-2">
+                <div class="card-body">
+
+                    <strong>
+                        @history.HistoryCreatedAt.ToString("yyyy-MM-dd HH:mm")
+                    </strong>
+
+                    <p class="mb-1">
+                        Status:
+                        @(history.Status?.Name ?? "Brak")
+                    </p>
+
+                    <p class="mb-1">
+                        Agent:
+                        @(history.Agent == null
+                            ? "Nieprzypisany"
+                            : $"{history.Agent.FirstName} {history.Agent.LastName}")
+                    </p>
+
+                    <small class="text-muted">
+                        Zmienione przez:
+                        @(history.ChangedByUser == null
+                            ? "Brak danych"
+                            : $"{history.ChangedByUser.FirstName} {history.ChangedByUser.LastName}")
+                    </small>
+
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <p>Brak historii zmian.</p>
+    }
 </div>

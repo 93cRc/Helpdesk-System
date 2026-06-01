@@ -22,9 +22,23 @@ namespace Helpdesk_System.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? statusId, int? priorityId)
         {
-            var tickets = await _ticketService.GetAllAsync();
+            var tickets = await _ticketService.GetAllAsync(statusId, priorityId);
+
+            ViewBag.Statuses = await _context.Statuses
+                .Where(s => s.IsActive)
+                .OrderBy(s => s.SortOrder)
+                .ToListAsync();
+
+            ViewBag.Priorities = await _context.Priorities
+                .Where(p => p.IsActive)
+                .OrderBy(p => p.SortOrder)
+                .ToListAsync();
+
+            ViewBag.SelectedStatusId = statusId;
+            ViewBag.SelectedPriorityId = priorityId;
+
             return View(tickets);
         }
 
@@ -117,6 +131,30 @@ namespace Helpdesk_System.Controllers
                 return NotFound();
             }
 
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var history = new TicketHistory
+            {
+                TicketId = ticket.Id,
+                RequestorId = ticket.RequestorId,
+                DepartmentId = ticket.DepartmentId,
+                AgentId = ticket.AgentId,
+                Title = ticket.Title,
+                Description = ticket.Description,
+                CategoryId = ticket.CategoryId,
+                StatusId = statusId,
+                PriorityId = ticket.PriorityId,
+                CreatedAt = ticket.CreatedAt,
+                AssignedAt = ticket.AssignedAt,
+                UpdatedAt = DateTime.Now,
+                ResolvedAt = ticket.ResolvedAt,
+                ClosedAt = ticket.ClosedAt,
+                ChangedBy = string.IsNullOrEmpty(userIdClaim) ? null : int.Parse(userIdClaim),
+                HistoryCreatedAt = DateTime.Now
+            };
+
+            _context.TicketsHistory.Add(history);
+
             ticket.StatusId = statusId;
             ticket.UpdatedAt = DateTime.Now;
 
@@ -137,9 +175,33 @@ namespace Helpdesk_System.Controllers
                 return NotFound();
             }
 
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             ticket.AgentId = agentId;
             ticket.AssignedAt = DateTime.Now;
             ticket.UpdatedAt = DateTime.Now;
+
+            var history = new TicketHistory
+            {
+                TicketId = ticket.Id,
+                RequestorId = ticket.RequestorId,
+                DepartmentId = ticket.DepartmentId,
+                AgentId = ticket.AgentId,
+                Title = ticket.Title,
+                Description = ticket.Description,
+                CategoryId = ticket.CategoryId,
+                StatusId = ticket.StatusId,
+                PriorityId = ticket.PriorityId,
+                CreatedAt = ticket.CreatedAt,
+                AssignedAt = ticket.AssignedAt,
+                UpdatedAt = ticket.UpdatedAt,
+                ResolvedAt = ticket.ResolvedAt,
+                ClosedAt = ticket.ClosedAt,
+                ChangedBy = string.IsNullOrEmpty(userIdClaim) ? null : int.Parse(userIdClaim),
+                HistoryCreatedAt = DateTime.Now
+            };
+
+            _context.TicketsHistory.Add(history);
 
             await _context.SaveChangesAsync();
 

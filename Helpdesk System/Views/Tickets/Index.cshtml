@@ -11,6 +11,67 @@
         Nowe zgłoszenie
     </a>
 </div>
+<form method="get" class="row g-3 mb-3">
+
+    <div class="col-md-4">
+        <label class="form-label">Status</label>
+
+        <select name="statusId" class="form-select">
+            <option value="">Wszystkie</option>
+
+            @foreach (var status in ViewBag.Statuses)
+            {
+                if (ViewBag.SelectedStatusId == status.Id)
+                {
+                    <option value="@status.Id" selected>
+                        @status.Name
+                    </option>
+                }
+                else
+                {
+                    <option value="@status.Id">
+                        @status.Name
+                    </option>
+                }
+            }
+        </select>
+    </div>
+
+    <div class="col-md-4">
+        <label class="form-label">Priorytet</label>
+
+        <select name="priorityId" class="form-select">
+            <option value="">Wszystkie</option>
+
+            @foreach (var priority in ViewBag.Priorities)
+            {
+                if (ViewBag.SelectedPriorityId == priority.Id)
+                {
+                    <option value="@priority.Id" selected>
+                        @priority.Name
+                    </option>
+                }
+                else
+                {
+                    <option value="@priority.Id">
+                        @priority.Name
+                    </option>
+                }
+            }
+        </select>
+    </div>
+
+    <div class="col-md-4 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary me-2">
+            Filtruj
+        </button>
+
+        <a asp-action="Index" class="btn btn-secondary">
+            Wyczyść
+        </a>
+    </div>
+
+</form>
 
 @if (!Model.Any())
 {
