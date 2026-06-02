@@ -1,0 +1,14 @@
+﻿@model Helpdesk_System.Models.Entities.Category
+
+<h1 class="mb-4 text-danger">Usuń kategorię</h1>
+
+<div class="card p-4 shadow-sm border-danger">
+    <p class="fs-5">Czy na pewno chcesz usunąć tę kategorię?</p>
+    <p><strong>@Model.Name</strong></p>
+
+    <form asp-action="Delete" method="post">
+        <input type="hidden" asp-for="Id" />
+        <button type="submit" class="btn btn-danger">Usuń</button>
+        <a asp-action="Index" class="btn btn-secondary">Anuluj</a>
+    </form>
+</div>
