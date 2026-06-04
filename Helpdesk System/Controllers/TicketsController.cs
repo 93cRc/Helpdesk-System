@@ -15,6 +15,7 @@ namespace Helpdesk_System.Controllers
     {
         private readonly ITicketService _ticketService;
         private readonly HelpdeskSystemDbContext _context;
+        private const int ClosedStatusId = 7;
 
         public TicketsController(ITicketService ticketService, HelpdeskSystemDbContext context)
         {
@@ -51,6 +52,7 @@ namespace Helpdesk_System.Controllers
 
         public async Task<IActionResult> Details(int id)
         {
+
             var ticket = await _ticketService.GetByIdAsync(id);
 
             if (ticket == null)
@@ -78,8 +80,7 @@ namespace Helpdesk_System.Controllers
             return View(ticket);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpGet]
         public async Task<IActionResult> Create()
         {
             var model = new CreateTicketViewModel();
@@ -87,6 +88,7 @@ namespace Helpdesk_System.Controllers
 
             return View(model);
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -104,11 +106,17 @@ namespace Helpdesk_System.Controllers
                 return Unauthorized();
             }
 
-            var ticketExists = await _context.Tickets.AnyAsync(t => t.Id == ticketId);
+            var ticket = await _context.Tickets
+                .FirstOrDefaultAsync(t => t.Id == ticketId);
 
-            if (!ticketExists)
+            if (ticket == null)
             {
                 return NotFound();
+            }
+
+            if (ticket.StatusId == ClosedStatusId)
+            {
+                return RedirectToAction(nameof(Details), new { id = ticketId });
             }
 
             var comment = new Comment
@@ -138,7 +146,29 @@ namespace Helpdesk_System.Controllers
                 return NotFound();
             }
 
+            if (ticket.StatusId == ClosedStatusId)
+            {
+                return RedirectToAction(nameof(Details), new { id = ticketId });
+            }
+
+            if (ticket.StatusId == statusId)
+            {
+                return RedirectToAction(nameof(Details), new { id = ticketId });
+            }
+
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            ticket.StatusId = statusId;
+            ticket.UpdatedAt = DateTime.Now;
+
+            if (statusId == 6)
+            {
+                ticket.ResolvedAt = DateTime.Now;
+            }
+            else
+            {
+                ticket.ResolvedAt = null;
+            }
 
             var history = new TicketHistory
             {
@@ -149,11 +179,11 @@ namespace Helpdesk_System.Controllers
                 Title = ticket.Title,
                 Description = ticket.Description,
                 CategoryId = ticket.CategoryId,
-                StatusId = statusId,
+                StatusId = ticket.StatusId,
                 PriorityId = ticket.PriorityId,
                 CreatedAt = ticket.CreatedAt,
                 AssignedAt = ticket.AssignedAt,
-                UpdatedAt = DateTime.Now,
+                UpdatedAt = ticket.UpdatedAt,
                 ResolvedAt = ticket.ResolvedAt,
                 ClosedAt = ticket.ClosedAt,
                 ChangedBy = string.IsNullOrEmpty(userIdClaim) ? null : int.Parse(userIdClaim),
@@ -162,8 +192,84 @@ namespace Helpdesk_System.Controllers
 
             _context.TicketsHistory.Add(history);
 
-            ticket.StatusId = statusId;
-            ticket.UpdatedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Details), new { id = ticketId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CloseTicket(int ticketId, string closeComment)
+        {
+            var ticket = await _context.Tickets
+                .FirstOrDefaultAsync(x => x.Id == ticketId);
+
+            if (ticket == null)
+            {
+                return NotFound();
+            }
+
+            if (ticket.StatusId == ClosedStatusId)
+            {
+                return RedirectToAction(nameof(Details), new { id = ticketId });
+            }
+
+            if (string.IsNullOrWhiteSpace(closeComment))
+            {
+                return RedirectToAction(nameof(Details), new { id = ticketId });
+            }
+
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                return Unauthorized();
+            }
+
+            var now = DateTime.Now;
+            var userId = int.Parse(userIdClaim);
+
+            ticket.StatusId = ClosedStatusId;
+            ticket.ClosedAt = now;
+            ticket.UpdatedAt = now;
+
+            if (ticket.ResolvedAt == null)
+            {
+                ticket.ResolvedAt = now;
+            }
+
+            var comment = new Comment
+            {
+                TicketId = ticket.Id,
+                UserId = userId,
+                Content = $"Zgłoszenie zostało zamknięte. Komentarz zamknięcia: {closeComment}",
+                IsInternal = false,
+                CreatedAt = now
+            };
+
+            _context.Comments.Add(comment);
+
+            var history = new TicketHistory
+            {
+                TicketId = ticket.Id,
+                RequestorId = ticket.RequestorId,
+                DepartmentId = ticket.DepartmentId,
+                AgentId = ticket.AgentId,
+                Title = ticket.Title,
+                Description = ticket.Description,
+                CategoryId = ticket.CategoryId,
+                StatusId = ticket.StatusId,
+                PriorityId = ticket.PriorityId,
+                CreatedAt = ticket.CreatedAt,
+                AssignedAt = ticket.AssignedAt,
+                UpdatedAt = ticket.UpdatedAt,
+                ResolvedAt = ticket.ResolvedAt,
+                ClosedAt = ticket.ClosedAt,
+                ChangedBy = userId,
+                HistoryCreatedAt = now
+            };
+
+            _context.TicketsHistory.Add(history);
 
             await _context.SaveChangesAsync();
 
@@ -182,10 +288,25 @@ namespace Helpdesk_System.Controllers
                 return NotFound();
             }
 
+            if (ticket.StatusId == ClosedStatusId)
+            {
+                return RedirectToAction(nameof(Details), new { id = ticketId });
+            }
+
+            if (ticket.AgentId == agentId)
+            {
+                return RedirectToAction(nameof(Details), new { id = ticketId });
+            }
+
+            if (ticket.AgentId == agentId)
+            {
+                return RedirectToAction(nameof(Details), new { id = ticketId });
+            }
+
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             ticket.AgentId = agentId;
-            ticket.AssignedAt = DateTime.Now;
+            ticket.AssignedAt = agentId.HasValue ? DateTime.Now : null;
             ticket.UpdatedAt = DateTime.Now;
 
             var history = new TicketHistory

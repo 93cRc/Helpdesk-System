@@ -14,8 +14,6 @@ namespace Helpdesk_System.Services
             _context = context;
         }
 
-
-
         public async Task<List<Ticket>> GetAllAsync(int? statusId = null, int? priorityId = null, int? agentId = null)
         {
             var query = _context.Tickets
@@ -27,19 +25,13 @@ namespace Helpdesk_System.Services
                 .AsQueryable();
 
             if (statusId.HasValue)
-            {
                 query = query.Where(t => t.StatusId == statusId.Value);
-            }
 
             if (priorityId.HasValue)
-            {
                 query = query.Where(t => t.PriorityId == priorityId.Value);
-            }
 
             if (agentId.HasValue)
-            {
                 query = query.Where(t => t.AgentId == agentId.Value);
-            }
 
             return await query
                 .OrderByDescending(t => t.CreatedAt)
@@ -77,6 +69,8 @@ namespace Helpdesk_System.Services
 
             _context.Tickets.Add(ticket);
             await _context.SaveChangesAsync();
+
+            await AddHistoryAsync(ticket, ticket.RequestorId);
         }
 
         public async Task UpdateAsync(Ticket ticket)
@@ -85,6 +79,18 @@ namespace Helpdesk_System.Services
 
             _context.Tickets.Update(ticket);
             await _context.SaveChangesAsync();
+
+            await AddHistoryAsync(ticket, ticket.RequestorId);
+        }
+
+        public async Task UpdateAsync(Ticket ticket, int? changedBy)
+        {
+            ticket.UpdatedAt = DateTime.Now;
+
+            _context.Tickets.Update(ticket);
+            await _context.SaveChangesAsync();
+
+            await AddHistoryAsync(ticket, changedBy);
         }
 
         public async Task DeleteAsync(int id)
@@ -95,6 +101,32 @@ namespace Helpdesk_System.Services
                 return;
 
             _context.Tickets.Remove(ticket);
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task AddHistoryAsync(Ticket ticket, int? changedBy)
+        {
+            var history = new TicketHistory
+            {
+                TicketId = ticket.Id,
+                RequestorId = ticket.RequestorId,
+                DepartmentId = ticket.DepartmentId,
+                AgentId = ticket.AgentId,
+                Title = ticket.Title,
+                Description = ticket.Description,
+                CategoryId = ticket.CategoryId,
+                StatusId = ticket.StatusId,
+                PriorityId = ticket.PriorityId,
+                CreatedAt = ticket.CreatedAt,
+                AssignedAt = ticket.AssignedAt,
+                UpdatedAt = ticket.UpdatedAt,
+                ResolvedAt = ticket.ResolvedAt,
+                ClosedAt = ticket.ClosedAt,
+                ChangedBy = changedBy,
+                HistoryCreatedAt = DateTime.Now
+            };
+
+            _context.TicketsHistory.Add(history);
             await _context.SaveChangesAsync();
         }
     }
