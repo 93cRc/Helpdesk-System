@@ -10,11 +10,12 @@ namespace Helpdesk_System.Controllers {
 			_logger = logger;
 		}
 
-		public IActionResult Index() {
-			return View();
-		}
+        public IActionResult Index()
+        {
+            return RedirectToAction("Dashboard", "Tickets");
+        }
 
-		public IActionResult Privacy() {
+        public IActionResult Privacy() {
 			return View();
 		}
 

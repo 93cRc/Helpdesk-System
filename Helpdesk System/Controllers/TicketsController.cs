@@ -49,6 +49,19 @@ namespace Helpdesk_System.Controllers
 
             return View(tickets);
         }
+        public async Task<IActionResult> Dashboard()
+        {
+            var model = new TicketDashboardViewModel
+            {
+                TotalTickets = await _context.Tickets.CountAsync(),
+                NewTickets = await _context.Tickets.CountAsync(t => t.StatusId == 1),
+                InProgressTickets = await _context.Tickets.CountAsync(t => t.StatusId == 2),
+                ResolvedTickets = await _context.Tickets.CountAsync(t => t.StatusId == 6),
+                ClosedTickets = await _context.Tickets.CountAsync(t => t.StatusId == 7),
+            };
+
+            return View(model);
+        }
 
         public async Task<IActionResult> Details(int id)
         {
