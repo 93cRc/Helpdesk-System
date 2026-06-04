@@ -4,6 +4,11 @@
     ViewData["Title"] = "Szczegóły zgłoszenia";
     var isClosed = Model.StatusId == 7;
 }
+@{
+    var canManageTickets =
+        User.IsInRole("Admin") ||
+        User.IsInRole("Agent");
+}
 
 <h1>Szczegóły zgłoszenia</h1>
 
@@ -25,7 +30,7 @@
         <p><strong>ID:</strong> @Model.Id</p>
         <p><strong>Status:</strong> @Model.Status?.Name</p>
 
-        @if (!isClosed)
+        @if (!isClosed && canManageTickets)
         {
             <form asp-action="ChangeStatus" method="post">
                 <input type="hidden" name="ticketId" value="@Model.Id" />
@@ -83,7 +88,7 @@
                 : $"{Model.Agent.FirstName} {Model.Agent.LastName}")
         </p>
 
-        @if (!isClosed)
+        @if (!isClosed && canManageTickets)
         {
             <form asp-action="AssignAgent" method="post">
                 <input type="hidden" name="ticketId" value="@Model.Id" />

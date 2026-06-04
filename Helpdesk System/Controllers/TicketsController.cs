@@ -25,7 +25,22 @@ namespace Helpdesk_System.Controllers
 
         public async Task<IActionResult> Index(int? statusId, int? priorityId, int? agentId)
         {
-            var tickets = await _ticketService.GetAllAsync(statusId, priorityId, agentId);
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                return Unauthorized();
+            }
+
+            var currentUserId = int.Parse(userIdClaim);
+            var roleName = User.FindFirstValue(ClaimTypes.Role);
+
+            var tickets = await _ticketService.GetAllAsync(
+                statusId,
+                priorityId,
+                agentId,
+                currentUserId,
+                roleName);
 
             ViewBag.Statuses = await _context.Statuses
                 .Where(s => s.IsActive)
@@ -72,6 +87,29 @@ namespace Helpdesk_System.Controllers
             {
                 return NotFound();
             }
+
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                return Unauthorized();
+            }
+
+            var currentUserId = int.Parse(userIdClaim);
+
+            if (User.IsInRole("Requestor") &&
+                ticket.RequestorId != currentUserId)
+            {
+                return Forbid();
+            }
+
+            if (User.IsInRole("Agent") &&
+                ticket.AgentId != currentUserId &&
+                ticket.AgentId != null)
+            {
+                return Forbid();
+            }
+
             var statuses = await _context.Statuses
             .OrderBy(x => x.SortOrder)
             .ToListAsync();
@@ -151,6 +189,11 @@ namespace Helpdesk_System.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangeStatus(int ticketId, int statusId)
         {
+            if (!CanManageTickets())
+            {
+                return Forbid();
+            }
+
             var ticket = await _context.Tickets
                 .FirstOrDefaultAsync(x => x.Id == ticketId);
 
@@ -214,6 +257,11 @@ namespace Helpdesk_System.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CloseTicket(int ticketId, string closeComment)
         {
+            if (!CanManageTickets())
+            {
+                return Forbid();
+            }
+
             var ticket = await _context.Tickets
                 .FirstOrDefaultAsync(x => x.Id == ticketId);
 
@@ -293,6 +341,11 @@ namespace Helpdesk_System.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AssignAgent(int ticketId, int? agentId)
         {
+            if (!CanManageTickets())
+            {
+                return Forbid();
+            }
+
             var ticket = await _context.Tickets
                 .FirstOrDefaultAsync(t => t.Id == ticketId);
 
@@ -426,5 +479,10 @@ namespace Helpdesk_System.Controllers
                 })
                 .ToListAsync();
         }
+        private bool CanManageTickets()
+        {
+            return User.IsInRole("Admin") || User.IsInRole("Agent");
+        }
     }
+
 }

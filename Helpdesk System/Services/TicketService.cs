@@ -14,7 +14,12 @@ namespace Helpdesk_System.Services
             _context = context;
         }
 
-        public async Task<List<Ticket>> GetAllAsync(int? statusId = null, int? priorityId = null, int? agentId = null)
+        public async Task<List<Ticket>> GetAllAsync(
+            int? statusId = null,
+            int? priorityId = null,
+            int? agentId = null,
+            int? currentUserId = null,
+            string? roleName = null)
         {
             var query = _context.Tickets
                 .Include(t => t.Requestor)
@@ -23,6 +28,16 @@ namespace Helpdesk_System.Services
                 .Include(t => t.Priority)
                 .Include(t => t.Category)
                 .AsQueryable();
+
+            if (roleName == "Requestor" && currentUserId.HasValue)
+            {
+                query = query.Where(t => t.RequestorId == currentUserId.Value);
+            }
+
+            if (roleName == "Agent" && currentUserId.HasValue)
+            {
+                query = query.Where(t => t.AgentId == currentUserId.Value || t.AgentId == null);
+            }
 
             if (statusId.HasValue)
                 query = query.Where(t => t.StatusId == statusId.Value);
