@@ -10,7 +10,7 @@
         User.IsInRole("Admin") ||
         User.IsInRole("Agent");
 
-    var canForwardToTeam =
+    var canRespondToTeam =
         User.IsInRole("Admin") ||
         User.IsInRole("Requestor");
 }
@@ -28,6 +28,17 @@
     </div>
 }
 
+@if (isClosed && User.IsInRole("Admin"))
+{
+    <form asp-action="ReopenTicket" method="post" class="mb-3">
+        <input type="hidden" name="ticketId" value="@Model.Id" />
+
+        <button type="submit" class="btn btn-warning">
+            Otwórz ponownie zgłoszenie
+        </button>
+    </form>
+}
+
 @if (isSuspended)
 {
     <div class="alert alert-warning">
@@ -37,23 +48,10 @@
     </div>
 }
 
-@if (Model.StatusId == 4 && canManageTickets)
-{
-    <form asp-action="ResumeTicket" method="post">
-        <input type="hidden" name="ticketId" value="@Model.Id" />
-
-        <button type="submit" class="btn btn-primary">
-            Podejmij ponownie pracę
-        </button>
-    </form>
-}
-
 <div class="card">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-start mb-3">
             <div>
-                <h3 class="mb-1">@Model.Title</h3>
-
                 <small class="text-muted">
                     Utworzono: @Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")
                     |
@@ -66,7 +64,7 @@
                 </small>
             </div>
 
-            @if (!isClosed && !isSuspended && canManageTickets)
+            @if (!isClosed && !isSuspended && User.IsInRole("Admin"))
             {
                 <form asp-action="AssignAgent" method="post" class="d-flex gap-2">
                     <input type="hidden" name="ticketId" value="@Model.Id" />
@@ -93,6 +91,18 @@
 
                     <button type="submit" class="btn btn-sm btn-outline-primary">
                         Przypisz
+                    </button>
+                </form>
+            }
+
+            @if (!isClosed && !isSuspended && User.IsInRole("Agent"))
+            {
+                <form asp-action="AssignAgent" method="post">
+                    <input type="hidden" name="ticketId" value="@Model.Id" />
+                    <input type="hidden" name="agentId" value="" />
+
+                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                        Przypisz do mnie
                     </button>
                 </form>
             }
@@ -193,20 +203,20 @@
             }
         }
 
-        @if (!isClosed && !isSuspended && canForwardToTeam)
+        @if (!isClosed && !isSuspended && Model.StatusId == 3 && canRespondToTeam)
         {
-            <form asp-action="ForwardToTeam" method="post" class="mt-3">
+            <form asp-action="RespondToTeam" method="post" class="mt-3">
                 <input type="hidden" name="ticketId" value="@Model.Id" />
 
-                <label class="form-label">Wiadomość do zespołu</label>
-                <textarea name="reason"
+                <label class="form-label">Odpowiedź dla zespołu</label>
+                <textarea name="content"
                           class="form-control"
                           rows="3"
-                          placeholder="Opisz, czego dotyczy przekazanie do zespołu..."
+                          placeholder="Wpisz odpowiedź dla zespołu helpdesk..."
                           required></textarea>
 
-                <button type="submit" class="btn btn-secondary mt-2">
-                    Przekaż do zespołu
+                <button type="submit" class="btn btn-primary mt-2">
+                    Odpowiedz zespołowi
                 </button>
             </form>
         }
@@ -215,10 +225,24 @@
 
         <p>
             <strong>Priorytet:</strong>
-            <span class="badge bg-info text-dark">
+
+            @{
+                var priorityClass = Model.Priority?.Name switch
+                {
+                    "Niski" => "bg-success",
+                    "Średni" => "bg-warning text-dark",
+                    "Wysoki" => "bg-danger",
+                    "Krytyczny" => "bg-dark",
+                    _ => "bg-secondary"
+                };
+            }
+
+            <span class="badge @priorityClass">
                 @Model.Priority?.Name
             </span>
         </p>
+
+
         <p><strong>Kategoria:</strong> @(Model.Category?.Name ?? "Brak")</p>
         <p><strong>Dział:</strong> @(Model.Department?.Name ?? "Brak")</p>
 
@@ -236,107 +260,110 @@
     <hr />
 
     <div class="card-body">
-        <h3>Komentarze</h3>
+        <details open>
+            <summary class="h3 mb-3">
+                Komentarze (@Model.Comments.Count)
+            </summary>
 
-        @if (Model.Comments.Any())
-        {
-            @foreach (var comment in Model.Comments.OrderByDescending(c => c.CreatedAt))
+            @if (Model.Comments.Any())
             {
-                <div class="card mb-2">
-                    <div class="card-body">
-                        <strong>
-                            @comment.User?.FirstName @comment.User?.LastName
-                        </strong>
+                @foreach (var comment in Model.Comments.OrderByDescending(c => c.CreatedAt))
+                {
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <strong>
+                                @comment.User?.FirstName @comment.User?.LastName
+                            </strong>
 
-                        <small class="text-muted">
-                            (@comment.CreatedAt.ToString("yyyy-MM-dd HH:mm"))
-                        </small>
+                            <small class="text-muted">
+                                (@comment.CreatedAt.ToString("yyyy-MM-dd HH:mm"))
+                            </small>
 
-                        <p class="mt-2 mb-0">
-                            @comment.Content
-                        </p>
+                            <p class="mt-2 mb-0">
+                                @comment.Content
+                            </p>
+                        </div>
                     </div>
-                </div>
+                }
             }
-        }
-        else
-        {
-            <p>Brak komentarzy.</p>
-        }
+            else
+            {
+                <p>Brak komentarzy.</p>
+            }
+
+            <hr />
+
+            @if (!isClosed && !isSuspended)
+            {
+                <h4>Dodaj komentarz</h4>
+
+                <form asp-action="AddComment" method="post">
+                    <input type="hidden" name="ticketId" value="@Model.Id" />
+
+                    <div class="mb-3">
+                        <textarea name="content"
+                                  class="form-control"
+                                  rows="4"
+                                  placeholder="Wpisz komentarz..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-success">
+                        Dodaj komentarz
+                    </button>
+                </form>
+            }
+            else if (isSuspended)
+            {
+                <p class="text-muted">
+                    Dodawanie komentarzy jest zablokowane, ponieważ zgłoszenie jest wstrzymane.
+                </p>
+            }
+            else
+            {
+                <p class="text-muted">
+                    Dodawanie komentarzy jest zablokowane, ponieważ zgłoszenie jest zamknięte.
+                </p>
+            }
+        </details>
 
         <hr />
 
-        @if (!isClosed && !isSuspended)
-        {
-            <h4>Dodaj komentarz</h4>
+        <details class="mt-3">
+            <summary class="h3">Historia zmian</summary>
 
-            <form asp-action="AddComment" method="post">
-                <input type="hidden" name="ticketId" value="@Model.Id" />
-
-                <div class="mb-3">
-                    <textarea name="content"
-                              class="form-control"
-                              rows="4"
-                              placeholder="Wpisz komentarz..."></textarea>
-                </div>
-
-                <button type="submit" class="btn btn-success">
-                    Dodaj komentarz
-                </button>
-            </form>
-        }
-        else if (isSuspended)
-        {
-            <p class="text-muted">
-                Dodawanie komentarzy jest zablokowane, ponieważ zgłoszenie jest wstrzymane.
-            </p>
-        }
-        else
-        {
-            <p class="text-muted">
-                Dodawanie komentarzy jest zablokowane, ponieważ zgłoszenie jest zamknięte.
-            </p>
-        }
-
-        <hr />
-
-        <h3>Historia zmian</h3>
-
-        @if (Model.History != null && Model.History.Any())
-        {
-            @foreach (var history in Model.History.OrderByDescending(h => h.HistoryCreatedAt))
+            @if (Model.History != null && Model.History.Any())
             {
-                <div class="card mb-2">
-                    <div class="card-body">
-                        <strong>
-                            @history.HistoryCreatedAt.ToString("yyyy-MM-dd HH:mm")
-                        </strong>
+                @foreach (var history in Model.History.OrderByDescending(h => h.HistoryCreatedAt))
+                {
+                    <div class="card mb-2 mt-2">
+                        <div class="card-body">
+                            <strong>@history.HistoryCreatedAt.ToString("yyyy-MM-dd HH:mm")</strong>
 
-                        <p class="mb-1">
-                            Status:
-                            @(history.Status?.Name ?? "Brak")
-                        </p>
+                            <p class="mb-1">
+                                Status: @(history.Status?.Name ?? "Brak")
+                            </p>
 
-                        <p class="mb-1">
-                            Agent:
-                            @(history.Agent == null
-                                ? "Nieprzypisany"
-                                : $"{history.Agent.FirstName} {history.Agent.LastName}")
-                        </p>
+                            <p class="mb-1">
+                                Agent:
+                                @(history.Agent == null
+                                    ? "Nieprzypisany"
+                                    : $"{history.Agent.FirstName} {history.Agent.LastName}")
+                            </p>
 
-                        <small class="text-muted">
-                            Zmienione przez:
-                            @(history.ChangedByUser == null
-                                ? "Brak danych"
-                                : $"{history.ChangedByUser.FirstName} {history.ChangedByUser.LastName}")
-                        </small>
+                            <small class="text-muted">
+                                Zmienione przez:
+                                @(history.ChangedByUser == null
+                                    ? "Brak danych"
+                                    : $"{history.ChangedByUser.FirstName} {history.ChangedByUser.LastName}")
+                            </small>
+                        </div>
                     </div>
-                </div>
+                }
             }
-        }
-        else
-        {
-            <p>Brak historii zmian.</p>
-        }
+            else
+            {
+                <p>Brak historii zmian.</p>
+            }
+        </details>
     </div>
 </div>

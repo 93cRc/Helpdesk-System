@@ -23,7 +23,7 @@ namespace Helpdesk_System.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index(int? statusId, int? priorityId, int? agentId)
+        public async Task<IActionResult> Index(string view = "active", int? statusId = null, int? priorityId = null, int? agentId = null)
         {
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -35,12 +35,28 @@ namespace Helpdesk_System.Controllers
             var currentUserId = int.Parse(userIdClaim);
             var roleName = User.FindFirstValue(ClaimTypes.Role);
 
+            if (view == "new")
+            {
+                statusId = 1;
+            }
+            else if (view == "closed")
+            {
+                statusId = 7;
+            }
+
             var tickets = await _ticketService.GetAllAsync(
                 statusId,
                 priorityId,
                 agentId,
                 currentUserId,
                 roleName);
+
+            if (view == "active")
+            {
+                tickets = tickets
+                    .Where(t => t.StatusId != 1 && t.StatusId != 7)
+                    .ToList();
+            }
 
             ViewBag.Statuses = await _context.Statuses
                 .Where(s => s.IsActive)
@@ -61,6 +77,7 @@ namespace Helpdesk_System.Controllers
             ViewBag.SelectedStatusId = statusId;
             ViewBag.SelectedPriorityId = priorityId;
             ViewBag.SelectedAgentId = agentId;
+            ViewBag.CurrentView = view;
 
             return View(tickets);
         }
@@ -122,9 +139,6 @@ namespace Helpdesk_System.Controllers
             .OrderBy(u => u.LastName)
             .ToListAsync();
 
-            // 02.06.2026 - brak użytkowników z rolą Agent w bazie testowej.
-            // Funkcjonalność przypisywania została zaimplementowana i wymaga
-            // jedynie dodania kont z rolą Agent.
 
             ViewBag.Agents = agents;
 
@@ -210,75 +224,6 @@ namespace Helpdesk_System.Controllers
 
             return RedirectToAction(nameof(Details), new { id = ticketId });
         }
-
-        /*
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ChangeStatus(int ticketId, int statusId)
-        {
-            if (!CanManageTickets())
-            {
-                return Forbid();
-            }
-
-            var ticket = await _context.Tickets
-                .FirstOrDefaultAsync(x => x.Id == ticketId);
-
-            if (ticket == null)
-            {
-                return NotFound();
-            }
-
-            if (ticket.StatusId == ClosedStatusId)
-            {
-                return RedirectToAction(nameof(Details), new { id = ticketId });
-            }
-
-            if (ticket.StatusId == statusId)
-            {
-                return RedirectToAction(nameof(Details), new { id = ticketId });
-            }
-
-            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            ticket.StatusId = statusId;
-            ticket.UpdatedAt = DateTime.Now;
-
-            if (statusId == 6)
-            {
-                ticket.ResolvedAt = DateTime.Now;
-            }
-            else
-            {
-                ticket.ResolvedAt = null;
-            }
-
-            var history = new TicketHistory
-            {
-                TicketId = ticket.Id,
-                RequestorId = ticket.RequestorId,
-                DepartmentId = ticket.DepartmentId,
-                AgentId = ticket.AgentId,
-                Title = ticket.Title,
-                Description = ticket.Description,
-                CategoryId = ticket.CategoryId,
-                StatusId = ticket.StatusId,
-                PriorityId = ticket.PriorityId,
-                CreatedAt = ticket.CreatedAt,
-                AssignedAt = ticket.AssignedAt,
-                UpdatedAt = ticket.UpdatedAt,
-                ResolvedAt = ticket.ResolvedAt,
-                ClosedAt = ticket.ClosedAt,
-                ChangedBy = string.IsNullOrEmpty(userIdClaim) ? null : int.Parse(userIdClaim),
-                HistoryCreatedAt = DateTime.Now
-            };
-
-            _context.TicketsHistory.Add(history);
-
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Details), new { id = ticketId });
-        } */ //PRZESTARZAŁE
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -456,16 +401,11 @@ namespace Helpdesk_System.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ForwardToTeam(int ticketId, string reason)
+        public async Task<IActionResult> ReopenTicket(int ticketId)
         {
-            if (!User.IsInRole("Admin") && !User.IsInRole("Requestor"))
+            if (!User.IsInRole("Admin"))
             {
                 return Forbid();
-            }
-
-            if (string.IsNullOrWhiteSpace(reason))
-            {
-                return RedirectToAction(nameof(Details), new { id = ticketId });
             }
 
             var ticket = await _context.Tickets
@@ -476,7 +416,7 @@ namespace Helpdesk_System.Controllers
                 return NotFound();
             }
 
-            if (ticket.StatusId == ClosedStatusId)
+            if (ticket.StatusId != ClosedStatusId)
             {
                 return RedirectToAction(nameof(Details), new { id = ticketId });
             }
@@ -491,14 +431,96 @@ namespace Helpdesk_System.Controllers
             var now = DateTime.Now;
             var userId = int.Parse(userIdClaim);
 
-            ticket.StatusId = 4;
+            ticket.StatusId = 2;
+            ticket.ClosedAt = null;
+            ticket.ResolvedAt = null;
             ticket.UpdatedAt = now;
 
             _context.Comments.Add(new Comment
             {
                 TicketId = ticket.Id,
                 UserId = userId,
-                Content = $"Zgłoszenie zostało przekazane do zespołu. Wiadomość: {reason}",
+                Content = "Zgłoszenie zostało ponownie otwarte.",
+                IsInternal = false,
+                CreatedAt = now
+            });
+
+            _context.TicketsHistory.Add(new TicketHistory
+            {
+                TicketId = ticket.Id,
+                RequestorId = ticket.RequestorId,
+                DepartmentId = ticket.DepartmentId,
+                AgentId = ticket.AgentId,
+                Title = ticket.Title,
+                Description = ticket.Description,
+                CategoryId = ticket.CategoryId,
+                StatusId = ticket.StatusId,
+                PriorityId = ticket.PriorityId,
+                CreatedAt = ticket.CreatedAt,
+                AssignedAt = ticket.AssignedAt,
+                UpdatedAt = ticket.UpdatedAt,
+                ResolvedAt = ticket.ResolvedAt,
+                ClosedAt = ticket.ClosedAt,
+                ChangedBy = userId,
+                HistoryCreatedAt = now
+            });
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Details), new { id = ticketId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RespondToTeam(int ticketId, string content)
+        {
+            if (!User.IsInRole("Requestor") && !User.IsInRole("Admin"))
+            {
+                return Forbid();
+            }
+
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                return RedirectToAction(nameof(Details), new { id = ticketId });
+            }
+
+            var ticket = await _context.Tickets
+                .FirstOrDefaultAsync(t => t.Id == ticketId);
+
+            if (ticket == null)
+            {
+                return NotFound();
+            }
+
+            if (ticket.StatusId != 3)
+            {
+                return RedirectToAction(nameof(Details), new { id = ticketId });
+            }
+
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                return Unauthorized();
+            }
+
+            var now = DateTime.Now;
+            var userId = int.Parse(userIdClaim);
+
+            if (User.IsInRole("Requestor") && ticket.RequestorId != userId)
+            {
+                return Forbid();
+            }
+
+            ticket.StatusId = 2;
+            ticket.UpdatedAt = now;
+            ticket.ResolvedAt = null;
+
+            _context.Comments.Add(new Comment
+            {
+                TicketId = ticket.Id,
+                UserId = userId,
+                Content = $"Odpowiedź dla zespołu: {content}",
                 IsInternal = false,
                 CreatedAt = now
             });
@@ -697,13 +719,24 @@ namespace Helpdesk_System.Controllers
                 return RedirectToAction(nameof(Details), new { id = ticketId });
             }
 
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                return Unauthorized();
+            }
+
+            var currentUserId = int.Parse(userIdClaim);
+
+            if (User.IsInRole("Agent"))
+            {
+                agentId = currentUserId;
+            }
+
             if (ticket.AgentId == agentId)
             {
                 return RedirectToAction(nameof(Details), new { id = ticketId });
             }
-
-
-            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             ticket.AgentId = agentId;
             ticket.AssignedAt = agentId.HasValue ? DateTime.Now : null;
@@ -725,7 +758,7 @@ namespace Helpdesk_System.Controllers
                 UpdatedAt = ticket.UpdatedAt,
                 ResolvedAt = ticket.ResolvedAt,
                 ClosedAt = ticket.ClosedAt,
-                ChangedBy = string.IsNullOrEmpty(userIdClaim) ? null : int.Parse(userIdClaim),
+                ChangedBy = currentUserId,
                 HistoryCreatedAt = DateTime.Now
             };
 
