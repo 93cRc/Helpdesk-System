@@ -182,9 +182,36 @@ namespace Helpdesk_System.Controllers
             _context.Comments.Add(comment);
             await _context.SaveChangesAsync();
 
+            if (ticket.StatusId == 3 && User.IsInRole("Requestor"))
+            {
+                ticket.StatusId = 2;
+                ticket.UpdatedAt = DateTime.Now;
+
+                _context.TicketsHistory.Add(new TicketHistory
+                {
+                    TicketId = ticket.Id,
+                    RequestorId = ticket.RequestorId,
+                    DepartmentId = ticket.DepartmentId,
+                    AgentId = ticket.AgentId,
+                    Title = ticket.Title,
+                    Description = ticket.Description,
+                    CategoryId = ticket.CategoryId,
+                    StatusId = ticket.StatusId,
+                    PriorityId = ticket.PriorityId,
+                    CreatedAt = ticket.CreatedAt,
+                    AssignedAt = ticket.AssignedAt,
+                    UpdatedAt = ticket.UpdatedAt,
+                    ResolvedAt = ticket.ResolvedAt,
+                    ClosedAt = ticket.ClosedAt,
+                    ChangedBy = int.Parse(userIdClaim),
+                    HistoryCreatedAt = DateTime.Now
+                });
+            }
+
             return RedirectToAction(nameof(Details), new { id = ticketId });
         }
 
+        /*
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangeStatus(int ticketId, int statusId)
@@ -251,6 +278,317 @@ namespace Helpdesk_System.Controllers
             await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Details), new { id = ticketId });
+        } */ //PRZESTARZAŁE
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> StartWork(int ticketId)
+        {
+            if (!CanManageTickets())
+            {
+                return Forbid();
+            }
+
+            return await SetTicketStatus(ticketId, 2);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResumeTicket(int ticketId)
+        {
+            if (!CanManageTickets())
+            {
+                return Forbid();
+            }
+
+            return await SetTicketStatus(ticketId, 2);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RequestCustomerResponse(int ticketId, string reason)
+        {
+            if (!CanManageTickets())
+            {
+                return Forbid();
+            }
+
+            if (string.IsNullOrWhiteSpace(reason))
+            {
+                return RedirectToAction(nameof(Details), new { id = ticketId });
+            }
+
+            var ticket = await _context.Tickets
+                .FirstOrDefaultAsync(t => t.Id == ticketId);
+
+            if (ticket == null)
+            {
+                return NotFound();
+            }
+
+            if (ticket.StatusId == ClosedStatusId)
+            {
+                return RedirectToAction(nameof(Details), new { id = ticketId });
+            }
+
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                return Unauthorized();
+            }
+
+            var now = DateTime.Now;
+            var userId = int.Parse(userIdClaim);
+
+            ticket.StatusId = 3;
+            ticket.UpdatedAt = now;
+            ticket.ResolvedAt = null;
+
+            _context.Comments.Add(new Comment
+            {
+                TicketId = ticket.Id,
+                UserId = userId,
+                Content = $"Poproszono zgłaszającego o odpowiedź. Powód: {reason}",
+                IsInternal = false,
+                CreatedAt = now
+            });
+
+            _context.TicketsHistory.Add(new TicketHistory
+            {
+                TicketId = ticket.Id,
+                RequestorId = ticket.RequestorId,
+                DepartmentId = ticket.DepartmentId,
+                AgentId = ticket.AgentId,
+                Title = ticket.Title,
+                Description = ticket.Description,
+                CategoryId = ticket.CategoryId,
+                StatusId = ticket.StatusId,
+                PriorityId = ticket.PriorityId,
+                CreatedAt = ticket.CreatedAt,
+                AssignedAt = ticket.AssignedAt,
+                UpdatedAt = ticket.UpdatedAt,
+                ResolvedAt = ticket.ResolvedAt,
+                ClosedAt = ticket.ClosedAt,
+                ChangedBy = userId,
+                HistoryCreatedAt = now
+            });
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Details), new { id = ticketId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SuspendTicket(int ticketId, string reason)
+        {
+            if (!CanManageTickets())
+            {
+                return Forbid();
+            }
+
+            if (string.IsNullOrWhiteSpace(reason))
+            {
+                return RedirectToAction(nameof(Details), new { id = ticketId });
+            }
+
+            var ticket = await _context.Tickets
+                .FirstOrDefaultAsync(t => t.Id == ticketId);
+
+            if (ticket == null)
+            {
+                return NotFound();
+            }
+
+            if (ticket.StatusId == ClosedStatusId)
+            {
+                return RedirectToAction(nameof(Details), new { id = ticketId });
+            }
+
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                return Unauthorized();
+            }
+
+            var now = DateTime.Now;
+            var userId = int.Parse(userIdClaim);
+
+            ticket.StatusId = 5;
+            ticket.UpdatedAt = now;
+            ticket.ResolvedAt = null;
+
+            _context.Comments.Add(new Comment
+            {
+                TicketId = ticket.Id,
+                UserId = userId,
+                Content = $"Zgłoszenie zostało wstrzymane. Powód: {reason}",
+                IsInternal = false,
+                CreatedAt = now
+            });
+
+            _context.TicketsHistory.Add(new TicketHistory
+            {
+                TicketId = ticket.Id,
+                RequestorId = ticket.RequestorId,
+                DepartmentId = ticket.DepartmentId,
+                AgentId = ticket.AgentId,
+                Title = ticket.Title,
+                Description = ticket.Description,
+                CategoryId = ticket.CategoryId,
+                StatusId = ticket.StatusId,
+                PriorityId = ticket.PriorityId,
+                CreatedAt = ticket.CreatedAt,
+                AssignedAt = ticket.AssignedAt,
+                UpdatedAt = ticket.UpdatedAt,
+                ResolvedAt = ticket.ResolvedAt,
+                ClosedAt = ticket.ClosedAt,
+                ChangedBy = userId,
+                HistoryCreatedAt = now
+            });
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Details), new { id = ticketId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForwardToTeam(int ticketId, string reason)
+        {
+            if (!User.IsInRole("Admin") && !User.IsInRole("Requestor"))
+            {
+                return Forbid();
+            }
+
+            if (string.IsNullOrWhiteSpace(reason))
+            {
+                return RedirectToAction(nameof(Details), new { id = ticketId });
+            }
+
+            var ticket = await _context.Tickets
+                .FirstOrDefaultAsync(t => t.Id == ticketId);
+
+            if (ticket == null)
+            {
+                return NotFound();
+            }
+
+            if (ticket.StatusId == ClosedStatusId)
+            {
+                return RedirectToAction(nameof(Details), new { id = ticketId });
+            }
+
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                return Unauthorized();
+            }
+
+            var now = DateTime.Now;
+            var userId = int.Parse(userIdClaim);
+
+            ticket.StatusId = 4;
+            ticket.UpdatedAt = now;
+
+            _context.Comments.Add(new Comment
+            {
+                TicketId = ticket.Id,
+                UserId = userId,
+                Content = $"Zgłoszenie zostało przekazane do zespołu. Wiadomość: {reason}",
+                IsInternal = false,
+                CreatedAt = now
+            });
+
+            _context.TicketsHistory.Add(new TicketHistory
+            {
+                TicketId = ticket.Id,
+                RequestorId = ticket.RequestorId,
+                DepartmentId = ticket.DepartmentId,
+                AgentId = ticket.AgentId,
+                Title = ticket.Title,
+                Description = ticket.Description,
+                CategoryId = ticket.CategoryId,
+                StatusId = ticket.StatusId,
+                PriorityId = ticket.PriorityId,
+                CreatedAt = ticket.CreatedAt,
+                AssignedAt = ticket.AssignedAt,
+                UpdatedAt = ticket.UpdatedAt,
+                ResolvedAt = ticket.ResolvedAt,
+                ClosedAt = ticket.ClosedAt,
+                ChangedBy = userId,
+                HistoryCreatedAt = now
+            });
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Details), new { id = ticketId });
+        }
+
+        private async Task<IActionResult> SetTicketStatus(int ticketId, int statusId)
+        {
+            var ticket = await _context.Tickets
+                .FirstOrDefaultAsync(x => x.Id == ticketId);
+
+            if (ticket == null)
+            {
+                return NotFound();
+            }
+
+            if (ticket.StatusId == ClosedStatusId)
+            {
+                return RedirectToAction(nameof(Details), new { id = ticketId });
+            }
+
+            if (ticket.StatusId == statusId)
+            {
+                return RedirectToAction(nameof(Details), new { id = ticketId });
+            }
+
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            ticket.StatusId = statusId;
+            ticket.UpdatedAt = DateTime.Now;
+
+            if (statusId == 6)
+            {
+                ticket.ResolvedAt = DateTime.Now;
+            }
+            else
+            {
+                ticket.ResolvedAt = null;
+            }
+
+            var history = new TicketHistory
+            {
+                TicketId = ticket.Id,
+                RequestorId = ticket.RequestorId,
+                DepartmentId = ticket.DepartmentId,
+                AgentId = ticket.AgentId,
+                Title = ticket.Title,
+                Description = ticket.Description,
+                CategoryId = ticket.CategoryId,
+                StatusId = ticket.StatusId,
+                PriorityId = ticket.PriorityId,
+                CreatedAt = ticket.CreatedAt,
+                AssignedAt = ticket.AssignedAt,
+                UpdatedAt = ticket.UpdatedAt,
+                ResolvedAt = ticket.ResolvedAt,
+                ClosedAt = ticket.ClosedAt,
+                ChangedBy = string.IsNullOrEmpty(userIdClaim) ? null : int.Parse(userIdClaim),
+                HistoryCreatedAt = DateTime.Now
+            };
+
+            _context.TicketsHistory.Add(history);
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Details), new { id = ticketId });
+
+
         }
 
         [HttpPost]
@@ -364,10 +702,6 @@ namespace Helpdesk_System.Controllers
                 return RedirectToAction(nameof(Details), new { id = ticketId });
             }
 
-            if (ticket.AgentId == agentId)
-            {
-                return RedirectToAction(nameof(Details), new { id = ticketId });
-            }
 
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
 

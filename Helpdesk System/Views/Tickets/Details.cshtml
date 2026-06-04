@@ -2,12 +2,17 @@
 
 @{
     ViewData["Title"] = "Szczegóły zgłoszenia";
+
     var isClosed = Model.StatusId == 7;
-}
-@{
+    var isSuspended = Model.StatusId == 5;
+
     var canManageTickets =
         User.IsInRole("Admin") ||
         User.IsInRole("Agent");
+
+    var canForwardToTeam =
+        User.IsInRole("Admin") ||
+        User.IsInRole("Requestor");
 }
 
 <h1>Szczegóły zgłoszenia</h1>
@@ -23,103 +28,209 @@
     </div>
 }
 
+@if (isSuspended)
+{
+    <div class="alert alert-warning">
+        <strong>Zgłoszenie jest obecnie wstrzymane.</strong>
+        <br />
+        Dalsze działania zostały tymczasowo wstrzymane do czasu rozwiązania przyczyny blokady.
+    </div>
+}
+
+@if (Model.StatusId == 4 && canManageTickets)
+{
+    <form asp-action="ResumeTicket" method="post">
+        <input type="hidden" name="ticketId" value="@Model.Id" />
+
+        <button type="submit" class="btn btn-primary">
+            Podejmij ponownie pracę
+        </button>
+    </form>
+}
+
 <div class="card">
     <div class="card-body">
-        <h3>@Model.Title</h3>
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+                <h3 class="mb-1">@Model.Title</h3>
 
-        <p><strong>ID:</strong> @Model.Id</p>
-        <p><strong>Status:</strong> @Model.Status?.Name</p>
+                <small class="text-muted">
+                    Utworzono: @Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+                    |
+                    Zgłaszający: @Model.Requestor?.FirstName @Model.Requestor?.LastName
+                    |
+                    Agent:
+                    @(Model.Agent == null
+                        ? "Nieprzypisany"
+                        : $"{Model.Agent.FirstName} {Model.Agent.LastName}")
+                </small>
+            </div>
 
-        @if (!isClosed && canManageTickets)
-        {
-            <form asp-action="ChangeStatus" method="post">
-                <input type="hidden" name="ticketId" value="@Model.Id" />
+            @if (!isClosed && !isSuspended && canManageTickets)
+            {
+                <form asp-action="AssignAgent" method="post" class="d-flex gap-2">
+                    <input type="hidden" name="ticketId" value="@Model.Id" />
 
-                <select name="statusId" class="form-control" required>
-                    <option value="">-- wybierz nowy status --</option>
+                    <select name="agentId" class="form-select form-select-sm">
+                        <option value="">-- wybierz agenta --</option>
 
-                    @foreach (var status in ViewBag.Statuses)
-                    {
-                        if (status.Id != Model.StatusId && status.Id != 7)
+                        @foreach (var agent in ViewBag.Agents)
                         {
-                            <option value="@status.Id">
-                                @status.Name
-                            </option>
+                            if (Model.AgentId == agent.Id)
+                            {
+                                <option value="@agent.Id" selected>
+                                    @agent.FirstName @agent.LastName
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="@agent.Id">
+                                    @agent.FirstName @agent.LastName
+                                </option>
+                            }
                         }
-                    }
-                </select>
+                    </select>
 
-                <br />
-
-                <button type="submit" class="btn btn-primary">
-                    Zmień status
-                </button>
-            </form>
-
-            <form asp-action="CloseTicket" method="post" class="mt-2">
-                <input type="hidden" name="ticketId" value="@Model.Id" />
-
-                <div class="mb-2">
-                    <label class="form-label">Komentarz zamknięcia</label>
-                    <textarea name="closeComment"
-                              class="form-control"
-                              rows="3"
-                              placeholder="Opisz, w jaki sposób zgłoszenie zostało zakończone..."
-                              required></textarea>
-                </div>
-
-                <button type="submit" class="btn btn-danger">
-                    Zamknij zgłoszenie
-                </button>
-            </form>
-        }
-
-        <p class="mt-3"><strong>Priorytet:</strong> @Model.Priority?.Name</p>
-        <p><strong>Kategoria:</strong> @(Model.Category?.Name ?? "Brak")</p>
-        <p><strong>Dział:</strong> @(Model.Department?.Name ?? "Brak")</p>
-        <p><strong>Opis:</strong> @(Model.Description ?? "Brak opisu")</p>
-        <p><strong>Data utworzenia:</strong> @Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</p>
-        <p><strong>Zgłaszający:</strong> @Model.Requestor?.FirstName @Model.Requestor?.LastName</p>
+                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                        Przypisz
+                    </button>
+                </form>
+            }
+        </div>
 
         <p>
-            <strong>Agent:</strong>
-            @(Model.Agent == null
-                ? "Nieprzypisany"
-                : $"{Model.Agent.FirstName} {Model.Agent.LastName}")
+            <strong>Status:</strong>
+            <span class="badge bg-secondary">
+                @Model.Status?.Name
+            </span>
         </p>
 
         @if (!isClosed && canManageTickets)
         {
-            <form asp-action="AssignAgent" method="post">
+            <div class="mb-3">
+                @if (Model.StatusId == 1)
+                {
+                    <form asp-action="StartWork" method="post" class="d-inline">
+                        <input type="hidden" name="ticketId" value="@Model.Id" />
+
+                        <button type="submit" class="btn btn-primary">
+                            Rozpocznij pracę
+                        </button>
+                    </form>
+                }
+
+                @if (Model.StatusId == 2)
+                {
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <form asp-action="RequestCustomerResponse" method="post">
+                                <input type="hidden" name="ticketId" value="@Model.Id" />
+
+                                <label class="form-label">Powód odesłania do zgłaszającego</label>
+                                <textarea name="reason"
+                                          class="form-control"
+                                          rows="3"
+                                          placeholder="Np. potrzebne dodatkowe informacje od zgłaszającego..."
+                                          required></textarea>
+
+                                <button type="submit" class="btn btn-warning mt-2">
+                                    Poproś zgłaszającego o odpowiedź
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="col-md-6">
+                            <form asp-action="SuspendTicket" method="post">
+                                <input type="hidden" name="ticketId" value="@Model.Id" />
+
+                                <label class="form-label">Powód wstrzymania</label>
+                                <textarea name="reason"
+                                          class="form-control"
+                                          rows="3"
+                                          placeholder="Np. oczekiwanie na decyzję lub zasoby..."
+                                          required></textarea>
+
+                                <button type="submit" class="btn btn-dark mt-2">
+                                    Wstrzymaj zgłoszenie
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                }
+
+                @if (isSuspended)
+                {
+                    <form asp-action="ResumeTicket" method="post">
+                        <input type="hidden" name="ticketId" value="@Model.Id" />
+
+                        <button type="submit" class="btn btn-primary">
+                            Wznów zgłoszenie
+                        </button>
+                    </form>
+                }
+            </div>
+
+            @if (!isSuspended)
+            {
+                <form asp-action="CloseTicket" method="post" class="mt-3">
+                    <input type="hidden" name="ticketId" value="@Model.Id" />
+
+                    <div class="mb-2">
+                        <label class="form-label">Komentarz zamknięcia</label>
+                        <textarea name="closeComment"
+                                  class="form-control"
+                                  rows="3"
+                                  placeholder="Opisz, w jaki sposób zgłoszenie zostało zakończone..."
+                                  required></textarea>
+                    </div>
+
+                    <button type="submit"
+                            class="btn btn-danger"
+                            onclick="return confirm('Czy na pewno chcesz zamknąć zgłoszenie?');">
+                        Zamknij zgłoszenie
+                    </button>
+                </form>
+            }
+        }
+
+        @if (!isClosed && !isSuspended && canForwardToTeam)
+        {
+            <form asp-action="ForwardToTeam" method="post" class="mt-3">
                 <input type="hidden" name="ticketId" value="@Model.Id" />
 
-                <select name="agentId" class="form-control">
-                    <option value="">-- wybierz agenta --</option>
+                <label class="form-label">Wiadomość do zespołu</label>
+                <textarea name="reason"
+                          class="form-control"
+                          rows="3"
+                          placeholder="Opisz, czego dotyczy przekazanie do zespołu..."
+                          required></textarea>
 
-                    @foreach (var agent in ViewBag.Agents)
-                    {
-                        if (Model.AgentId == agent.Id)
-                        {
-                            <option value="@agent.Id" selected>
-                                @agent.FirstName @agent.LastName
-                            </option>
-                        }
-                        else
-                        {
-                            <option value="@agent.Id">
-                                @agent.FirstName @agent.LastName
-                            </option>
-                        }
-                    }
-                </select>
-
-                <br />
-
-                <button type="submit" class="btn btn-primary">
-                    Przypisz agenta
+                <button type="submit" class="btn btn-secondary mt-2">
+                    Przekaż do zespołu
                 </button>
             </form>
         }
+
+        <hr />
+
+        <p>
+            <strong>Priorytet:</strong>
+            <span class="badge bg-info text-dark">
+                @Model.Priority?.Name
+            </span>
+        </p>
+        <p><strong>Kategoria:</strong> @(Model.Category?.Name ?? "Brak")</p>
+        <p><strong>Dział:</strong> @(Model.Department?.Name ?? "Brak")</p>
+
+        <hr />
+
+        <h5>Opis zgłoszenia</h5>
+
+        <p>
+            @(string.IsNullOrWhiteSpace(Model.Description)
+                ? "Brak opisu"
+                : Model.Description)
+        </p>
     </div>
 
     <hr />
@@ -155,7 +266,7 @@
 
         <hr />
 
-        @if (!isClosed)
+        @if (!isClosed && !isSuspended)
         {
             <h4>Dodaj komentarz</h4>
 
@@ -173,6 +284,12 @@
                     Dodaj komentarz
                 </button>
             </form>
+        }
+        else if (isSuspended)
+        {
+            <p class="text-muted">
+                Dodawanie komentarzy jest zablokowane, ponieważ zgłoszenie jest wstrzymane.
+            </p>
         }
         else
         {

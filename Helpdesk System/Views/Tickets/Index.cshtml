@@ -136,8 +136,17 @@ else
                                 </a>
                             </td>
 
-                            <td>@ticket.Status?.Name</td>
-                            <td>@ticket.Priority?.Name</td>
+                            <td>
+                                <span class="badge bg-secondary">
+                                    @ticket.Status?.Name
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="badge bg-info text-dark">
+                                    @ticket.Priority?.Name
+                                </span>
+                            </td>
                             <td>@ticket.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
 
                             <td>
