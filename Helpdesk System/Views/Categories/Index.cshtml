@@ -1,120 +1,59 @@
-﻿@model IEnumerable<Helpdesk_System.Models.Entities.Category>
+﻿@model IEnumerable<Helpdesk_System.ViewModels.Categories.CategoryIndexViewModel>
 
-<style>
-    .category-page h1 {
-        font-size: 48px;
-        font-weight: 700;
-        margin-bottom: 30px;
-    }
-
-    .add-btn {
-        display: inline-block;
-        background-color: #0d6efd;
-        color: white;
-        padding: 10px 18px;
-        border-radius: 8px;
-        text-decoration: none;
-        margin-bottom: 20px;
-    }
-
-        .add-btn:hover {
-            background-color: #0b5ed7;
-            color: white;
-        }
-
-    .category-table {
-        width: 100%;
-        border-collapse: collapse;
-        background: white;
-        border-radius: 10px;
-        overflow: hidden;
-    }
-
-        .category-table th {
-            background-color: #212529;
-            color: white;
-            text-align: left;
-            padding: 14px;
-        }
-
-        .category-table td {
-            padding: 14px;
-            border-bottom: 1px solid #ddd;
-        }
-
-    .action-btn {
-        display: inline-block;
-        padding: 6px 12px;
-        border-radius: 6px;
-        text-decoration: none;
-        font-size: 14px;
-        margin-right: 8px;
-    }
-
-    .edit-btn {
-        background-color: #ffc107;
-        color: black;
-    }
-
-    .delete-btn {
-        background-color: #dc3545;
-        color: white;
-    }
-
-    .edit-btn:hover {
-        background-color: #e0a800;
-        color: black;
-    }
-
-    .delete-btn:hover {
-        background-color: #bb2d3b;
-        color: white;
-    }
-
-    .empty-box {
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        border: 1px solid #ddd;
-    }
-</style>
-
-<div class="category-page">
-    <h1>Kategorie</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-1">Kategorie</h1>
+        <p class="text-muted mb-0">Lista kategorii w systemie helpdesk</p>
+    </div>
 
     @if (User.IsInRole("Admin"))
     {
-        <a asp-action="Create" class="add-btn">+ Dodaj kategorię</a>
+        <a asp-action="Create" class="btn btn-primary btn-lg">+ Dodaj kategorię</a>
     }
+</div>
 
-    @if (Model == null || !Model.Any())
-    {
-        <div class="empty-box">Brak kategorii w bazie.</div>
-    }
-    else
-    {
-        <table class="category-table">
-            <thead>
-                <tr>
-                    <th>Nazwa kategorii</th>
-                    <th>Akcje</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model)
-                {
+<div class="card">
+    <div class="card-header fw-bold">
+        Lista kategorii
+    </div>
+    <div class="card-body p-0">
+        @if (Model == null || !Model.Any())
+        {
+            <div class="p-3">
+                <div class="alert alert-light border mb-0">
+                    Brak kategorii w bazie.
+                </div>
+            </div>
+        }
+        else
+        {
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
                     <tr>
-                        <td>@item.Name</td>
-                        <td>
-                            @if (User.IsInRole("Admin"))
-                            {
-                                <a asp-action="Edit" asp-route-id="@item.Id" class="action-btn edit-btn">Edytuj</a>
-                                <a asp-action="Delete" asp-route-id="@item.Id" class="action-btn delete-btn">Usuń</a>
-                            }
-                        </td>
+                        <th>Nazwa kategorii</th>
+                        <th>Akcje</th>
                     </tr>
-                }
-            </tbody>
-        </table>
-    }
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td style="color: #3d5a80; font-weight: 700;">@item.Name</td>
+                            <td>
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-primary btn-sm me-2">
+                                        Edytuj
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger btn-sm">
+                                        Usuń
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
 </div>

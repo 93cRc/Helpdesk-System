@@ -1,29 +1,26 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Helpdesk_System.Services.Interfaces;
+using Helpdesk_System.ViewModels.Categories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Helpdesk_System.Data;
-using Helpdesk_System.Models;
-using Helpdesk_System.Models.Entities;
 
 namespace Helpdesk_System.Controllers
 {
     public class CategoriesController : Controller
     {
-        private readonly HelpdeskSystemDbContext _context;
+        private readonly ICategoryService _categoryService;
 
-        public CategoriesController(HelpdeskSystemDbContext context)
+        public CategoriesController(ICategoryService categoryService)
         {
-            _context = context;
+            _categoryService = categoryService;
         }
 
-        [Authorize(Roles = "Admin")]
-        
+        [Authorize(Roles = "Admin,Agent")]
         public async Task<IActionResult> Index()
         {
-            var categories = await _context.Categories.ToListAsync();
-            return View(categories);
+            var model = await _categoryService.GetAllAsync();
+            return View(model);
         }
-        // DODAJ
+
         [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
@@ -33,18 +30,17 @@ namespace Helpdesk_System.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create(Category category)
+        public async Task<IActionResult> Create(CategoryCreateViewModel model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                _context.Categories.Add(category);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return View(model);
             }
 
-            return View(category);
+            await _categoryService.CreateAsync(model);
+            return RedirectToAction(nameof(Index));
         }
-        // EDYTOWAĆ
+
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -53,36 +49,35 @@ namespace Helpdesk_System.Controllers
                 return NotFound();
             }
 
-            var category = await _context.Categories.FindAsync(id);
+            var model = await _categoryService.GetByIdToEditAsync(id.Value);
 
-            if (category == null)
+            if (model == null)
             {
                 return NotFound();
             }
 
-            return View(category);
+            return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Edit(int id, Category category)
+        public async Task<IActionResult> Edit(int id, CategoryEditViewModel model)
         {
-            if (id != category.Id)
+            if (id != model.Id)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                _context.Update(category);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return View(model);
             }
 
-            return View(category);
+            await _categoryService.UpdateAsync(model);
+            return RedirectToAction(nameof(Index));
         }
-        //USUNĄĆ
+
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
@@ -91,14 +86,14 @@ namespace Helpdesk_System.Controllers
                 return NotFound();
             }
 
-            var category = await _context.Categories.FirstOrDefaultAsync(c => c.Id == id);
+            var model = await _categoryService.GetByIdToDeleteAsync(id.Value);
 
-            if (category == null)
+            if (model == null)
             {
                 return NotFound();
             }
 
-            return View(category);
+            return View(model);
         }
 
         [HttpPost, ActionName("Delete")]
@@ -106,14 +101,7 @@ namespace Helpdesk_System.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var category = await _context.Categories.FindAsync(id);
-
-            if (category != null)
-            {
-                _context.Categories.Remove(category);
-                await _context.SaveChangesAsync();
-            }
-
+            await _categoryService.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }
     }
