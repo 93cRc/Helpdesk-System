@@ -1,18 +1,30 @@
-﻿@model Helpdesk_System.Models.Entities.Category
+﻿@model Helpdesk_System.ViewModels.Categories.CategoryCreateViewModel
 
-<h1 class="mb-4">Dodaj kategorię</h1>
+<div class="mb-4">
+    <h1 class="mb-1">Dodaj kategorię</h1>
+    <p class="text-muted mb-0">Utwórz nową kategorię w systemie helpdesk</p>
+</div>
 
-<div class="card p-4 shadow-sm">
-    <form asp-action="Create" method="post">
-        <div class="mb-3">
-            <label asp-for="Name" class="form-label">Nazwa kategorii</label>
-            <input asp-for="Name" class="form-control" />
-            <span asp-validation-for="Name" class="text-danger"></span>
-        </div>
+<div class="card">
+    <div class="card-header fw-bold">
+        Nowa kategoria
+    </div>
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-        <button type="submit" class="btn btn-success">Zapisz</button>
-        <a asp-action="Index" class="btn btn-secondary">Powrót</a>
-    </form>
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label">Nazwa kategorii</label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-outline-primary ">Dodaj</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Powrót</a>
+            </div>
+        </form>
+    </div>
 </div>
 
 @section Scripts {

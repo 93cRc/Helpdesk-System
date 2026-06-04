@@ -54,6 +54,8 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddScoped<IPasswordHasherService, PasswordHasherService>();
 
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
