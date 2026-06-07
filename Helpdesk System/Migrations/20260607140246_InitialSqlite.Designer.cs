@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Helpdesk_System.Migrations
 {
     [DbContext(typeof(HelpdeskSystemDbContext))]
-    [Migration("20260607131514_InitialSqlite")]
+    [Migration("20260607140246_InitialSqlite")]
     partial class InitialSqlite
     {
         /// <inheritdoc />
@@ -57,6 +57,40 @@ namespace Helpdesk_System.Migrations
                         .IsUnique();
 
                     b.ToTable("categories", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            Name = "Hardware",
+                            SortOrder = 0
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            Name = "Software",
+                            SortOrder = 1
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            Name = "Konta i uprawnienia",
+                            SortOrder = 2
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            Name = "Sieć",
+                            SortOrder = 3
+                        });
                 });
 
             modelBuilder.Entity("Helpdesk_System.Models.Entities.Comment", b =>
@@ -233,6 +267,53 @@ namespace Helpdesk_System.Migrations
                         .IsUnique();
 
                     b.ToTable("priorities", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Code = "none",
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            Name = "Brak",
+                            SortOrder = 0
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Code = "low",
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            Name = "Niski",
+                            SortOrder = 1
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Code = "medium",
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            Name = "Średni",
+                            SortOrder = 2
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Code = "high",
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            Name = "Wysoki",
+                            SortOrder = 3
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Code = "critical",
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            Name = "Krytyczny",
+                            SortOrder = 4
+                        });
                 });
 
             modelBuilder.Entity("Helpdesk_System.Models.Entities.Role", b =>
@@ -346,6 +427,71 @@ namespace Helpdesk_System.Migrations
                         .IsUnique();
 
                     b.ToTable("statuses", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Code = "new",
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            Name = "Nowe",
+                            SortOrder = 0
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Code = "in_progress",
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            Name = "W toku",
+                            SortOrder = 1
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Code = "waiting_for_requestor",
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            Name = "Oczekuje na zgłaszającego",
+                            SortOrder = 2
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Code = "waiting_for_team",
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            Name = "Oczekuje na zespół",
+                            SortOrder = 3
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Code = "on_hold",
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            Name = "Wstrzymane",
+                            SortOrder = 4
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Code = "resolved",
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            Name = "Rozwiązane",
+                            SortOrder = 5
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Code = "closed",
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            Name = "Zamknięte",
+                            SortOrder = 6
+                        });
                 });
 
             modelBuilder.Entity("Helpdesk_System.Models.Entities.Ticket", b =>

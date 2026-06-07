@@ -36,6 +36,37 @@ namespace Helpdesk_System.Data.Configurations {
 
 			builder.HasIndex(c => c.Name)
 				.IsUnique();
+
+			builder.HasData(
+				new Category {
+					Id = 1,
+					Name = "Hardware",
+					SortOrder = 0,
+					IsActive = true,
+					CreatedAt = new DateTime()
+				},
+				new Category {
+					Id = 2,
+					Name = "Software",
+					SortOrder = 1,
+					IsActive = true,
+					CreatedAt = new DateTime()
+				},
+				new Category {
+					Id = 3,
+					Name = "Konta i uprawnienia",
+					SortOrder = 2,
+					IsActive = true,
+					CreatedAt = new DateTime()
+				},
+				new Category {
+					Id = 4,
+					Name = "Sieć",
+					SortOrder = 3,
+					IsActive = true,
+					CreatedAt = new DateTime()
+				}
+			);
 		}
 	}
 }
