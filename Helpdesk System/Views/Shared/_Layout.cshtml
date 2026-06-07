@@ -8,6 +8,7 @@
 
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Helpdesk_System.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
 </head>
 <body>
     <header class="app-header">
@@ -17,13 +18,17 @@
             </div>
 
             <div class="app-nav__links">
-                @if (User.Identity?.IsAuthenticated == true) {
+                @if (User.Identity?.IsAuthenticated == true)
+                {
                     <a asp-controller="Home" asp-action="Index">Start</a>
                     <a asp-controller="Tickets" asp-action="Index">Zgłoszenia</a>
 
-                    @if (User.IsInRole("Admin")) {
+                    @if (User.IsInRole("Admin"))
+                    {
                         <a asp-controller="Users" asp-action="Index">Użytkownicy</a>
+                        <a asp-controller="Departments" asp-action="Index">Działy</a>
                         <a asp-controller="Categories" asp-action="Index">Kategorie</a>
+                        <a asp-controller="Departments" asp-action="Index">Działy</a>
                     }
 
                     <span class="app-nav__user">
@@ -35,7 +40,8 @@
                         <button type="submit" class="link-button">Wyloguj</button>
                     </form>
                 }
-                else {
+                else
+                {
                     <a asp-controller="Accounts" asp-action="Login">Logowanie</a>
                 }
             </div>

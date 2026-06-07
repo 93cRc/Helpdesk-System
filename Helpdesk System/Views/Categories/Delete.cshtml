@@ -1,0 +1,34 @@
+﻿@model Helpdesk_System.ViewModels.Categories.CategoryDeleteViewModel
+
+<div class="mb-4">
+    <h1 class="mb-1">Usuń kategorię</h1>
+    <p class="text-muted mb-0">Potwierdź usunięcie kategorii z systemu helpdesk</p>
+</div>
+
+<div class="card">
+    <div class="card-header fw-bold">
+        Usuwanie kategorii
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning">
+            Czy na pewno chcesz usunąć tę kategorię?
+        </div>
+
+        <dl class="row mb-4">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9">@Model.Id</dd>
+
+            <dt class="col-sm-3">Nazwa kategorii</dt>
+            <dd class="col-sm-9">@Model.Name</dd>
+        </dl>
+
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="Id" />
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-outline-danger">Usuń</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Anuluj</a>
+            </div>
+        </form>
+    </div>
+</div>

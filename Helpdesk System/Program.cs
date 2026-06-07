@@ -50,7 +50,14 @@ builder.Services
 builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<IPasswordHasherService, PasswordHasherService>();
-builder.Services.AddScoped<ITicketService, TicketService>(); //-DODANE JK 31.05
+
+builder.Services.AddScoped<ITicketService, TicketService>();
+
+builder.Services.AddScoped<IUserService, UserService>();
+
+builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 var app = builder.Build();
 
