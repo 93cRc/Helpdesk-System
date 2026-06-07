@@ -1,7 +1,7 @@
 ﻿using Helpdesk_System.Models.DbViews;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
+/*
 namespace Helpdesk_System.Data.Configurations {
 	public class VTicketConfiguration : IEntityTypeConfiguration<VTicket> {
 		public void Configure(EntityTypeBuilder<VTicket> builder) {
@@ -43,4 +43,4 @@ namespace Helpdesk_System.Data.Configurations {
 			builder.Property(x => x.ClosedAt).HasColumnName("closed_at");
 		}
 	}
-}
+}*/

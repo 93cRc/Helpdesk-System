@@ -1,7 +1,7 @@
 ﻿using Helpdesk_System.Models.DbViews;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
+/*
 namespace Helpdesk_System.Data.Configurations {
 	public class VCommentConfiguration : IEntityTypeConfiguration<VComment> {
 		public void Configure(EntityTypeBuilder<VComment> builder) {
@@ -20,4 +20,4 @@ namespace Helpdesk_System.Data.Configurations {
 			builder.Property(x => x.UpdatedAt).HasColumnName("updated_at");
 		}
 	}
-}
+}*/

@@ -23,7 +23,7 @@ namespace Helpdesk_System.Data.Configurations {
 
 			builder.Property(c => c.Content)
 				.HasColumnName("content")
-				.HasColumnType("text")
+				//.HasColumnType("text")
 				.IsRequired();
 
 			builder.Property(c => c.IsInternal)

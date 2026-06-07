@@ -69,6 +69,23 @@ namespace Helpdesk_System.Data.Configurations {
 			builder.HasOne(u => u.Department)
 				.WithMany(d => d.Users)
 				.HasForeignKey(u => u.DepartmentId);
+
+			builder.HasData(
+				new User {
+					Id = 1,
+					FirstName = "Kamil",
+					LastName = "Krakowiak",
+					Email = "admin@firma.pl",
+					Phone = null,
+					PasswordHash = "$2b$12$LxOxtse..3EaSbWJqFHlRerxBudpeHpvgA5fhRamMO.PbFqWS6UJu",
+					RoleId = 1,
+					DepartmentId = null,
+					IsActive = true,
+					CreatedAt = new(),
+					UpdatedAt = null,
+					LastLoginAt = null
+				}
+			);
 		}
 	}
 }

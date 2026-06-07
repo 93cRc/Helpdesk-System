@@ -29,8 +29,8 @@ namespace Helpdesk_System.Data.Configurations {
 				.IsRequired();
 
 			builder.Property(t => t.Description)
-				.HasColumnName("description")
-				.HasColumnType("text");
+				.HasColumnName("description");
+				//.HasColumnType("text");
 
 			builder.Property(t => t.CategoryId)
 				.HasColumnName("category_id");

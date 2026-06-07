@@ -10,9 +10,9 @@ builder.Configuration
     .SetBasePath(builder.Environment.ContentRootPath)
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
 #if DEBUG
-    .AddJsonFile("appsettings.Dev.json", optional: true, reloadOnChange: true)
+    //.AddJsonFile("appsettings.Dev.json", optional: true, reloadOnChange: true)
 #else
-	.AddJsonFile("appsettings.Prod.json", optional: true, reloadOnChange: true)
+	//.AddJsonFile("appsettings.Prod.json", optional: true, reloadOnChange: true)
 #endif
     .AddEnvironmentVariables();
 
@@ -22,13 +22,11 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<HelpdeskSystemDbContext>(options => {
-    options.UseMySql(
-        connectionString,
-        ServerVersion.AutoDetect(connectionString));
+	options.UseSqlite(connectionString);
 
 #if DEBUG
-    options.EnableSensitiveDataLogging();
-    options.EnableDetailedErrors();
+	options.EnableSensitiveDataLogging();
+	options.EnableDetailedErrors();
 #endif
 });
 

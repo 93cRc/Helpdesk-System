@@ -1,5 +1,5 @@
 ﻿namespace Helpdesk_System.Models.DbViews {
-	public class VTicket {
+	/*public class VTicket {
 		public int Id { get; set; }
 		public string TicketTitle { get; set; } = null!;
 		public string? TicketDescription { get; set; }
@@ -33,5 +33,5 @@
 		public DateTime? UpdatedAt { get; set; }
 		public DateTime? ResolvedAt { get; set; }
 		public DateTime? ClosedAt { get; set; }
-	}
+	}*/
 }

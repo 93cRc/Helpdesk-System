@@ -26,8 +26,8 @@ namespace Helpdesk_System.Data.Configurations {
 				.IsRequired();
 
 			builder.Property(r => r.Content)
-				.HasColumnName("content")
-				.HasColumnType("text");
+				.HasColumnName("content");
+				//.HasColumnType("text");
 
 			builder.Property(r => r.CreatedAt)
 				.HasColumnName("created_at")

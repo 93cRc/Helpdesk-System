@@ -1,4 +1,5 @@
 ﻿using Helpdesk_System.Models.Entities;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -36,6 +37,32 @@ namespace Helpdesk_System.Data.Configurations {
 
 			builder.HasIndex(r => r.Name)
 				.IsUnique();
+
+			var createdAt = new DateTime();
+
+			builder.HasData(
+				new Role {
+					Id = 1,
+					Name = "Admin",
+					SortOrder = 0,
+					IsActive = true,
+					CreatedAt = createdAt
+				},
+				new Role {
+					Id = 2,
+					Name = "Agent",
+					SortOrder = 1,
+					IsActive = true,
+					CreatedAt = createdAt
+				},
+				new Role {
+					Id = 3,
+					Name = "Requestor",
+					SortOrder = 2,
+					IsActive = true,
+					CreatedAt = createdAt
+				}
+			);
 		}
 	}
 }

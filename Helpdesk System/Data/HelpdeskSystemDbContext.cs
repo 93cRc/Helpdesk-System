@@ -1,4 +1,4 @@
-﻿using Helpdesk_System.Models.DbViews;
+﻿//using Helpdesk_System.Models.DbViews;
 using Helpdesk_System.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,8 +19,8 @@ namespace Helpdesk_System.Data {
 		public DbSet<TicketRating> TicketRatings { get; set; }
 		public DbSet<TicketHistory> TicketsHistory { get; set; }
 
-		public DbSet<VTicket> VTickets { get; set; }
-		public DbSet<VComment> VComments { get; set; }
+		//public DbSet<VTicket> VTickets { get; set; }
+		//public DbSet<VComment> VComments { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder) {
 			base.OnModelCreating(modelBuilder);
