@@ -1,5 +1,5 @@
 ﻿namespace Helpdesk_System.Models.DbViews {
-	public class VComment {
+	/*public class VComment {
 		public int Id { get; set; }
 		public int TicketId { get; set; }
 		public int UserId { get; set; }
@@ -12,5 +12,5 @@
 		public bool IsInternal { get; set; }
 		public DateTime CreatedAt { get; set; }
 		public DateTime? UpdatedAt { get; set; }
-	}
+	}*/
 }
