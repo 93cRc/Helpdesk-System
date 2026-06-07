@@ -1,0 +1,369 @@
+﻿@model Helpdesk_System.Models.Entities.Ticket
+
+@{
+    ViewData["Title"] = "Szczegóły zgłoszenia";
+
+    var isClosed = Model.StatusId == 7;
+    var isSuspended = Model.StatusId == 5;
+
+    var canManageTickets =
+        User.IsInRole("Admin") ||
+        User.IsInRole("Agent");
+
+    var canRespondToTeam =
+        User.IsInRole("Admin") ||
+        User.IsInRole("Requestor");
+}
+
+<h1>Szczegóły zgłoszenia</h1>
+
+<div class="mb-3">
+    <a asp-action="Index" class="btn btn-secondary">Powrót</a>
+</div>
+
+@if (isClosed)
+{
+    <div class="alert alert-secondary">
+        To zgłoszenie jest zamknięte.
+    </div>
+}
+
+@if (isClosed && User.IsInRole("Admin"))
+{
+    <form asp-action="ReopenTicket" method="post" class="mb-3">
+        <input type="hidden" name="ticketId" value="@Model.Id" />
+
+        <button type="submit" class="btn btn-warning">
+            Otwórz ponownie zgłoszenie
+        </button>
+    </form>
+}
+
+@if (isSuspended)
+{
+    <div class="alert alert-warning">
+        <strong>Zgłoszenie jest obecnie wstrzymane.</strong>
+        <br />
+        Dalsze działania zostały tymczasowo wstrzymane do czasu rozwiązania przyczyny blokady.
+    </div>
+}
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+                <small class="text-muted">
+                    Utworzono: @Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+                    |
+                    Zgłaszający: @Model.Requestor?.FirstName @Model.Requestor?.LastName
+                    |
+                    Agent:
+                    @(Model.Agent == null
+                        ? "Nieprzypisany"
+                        : $"{Model.Agent.FirstName} {Model.Agent.LastName}")
+                </small>
+            </div>
+
+            @if (!isClosed && !isSuspended && User.IsInRole("Admin"))
+            {
+                <form asp-action="AssignAgent" method="post" class="d-flex gap-2">
+                    <input type="hidden" name="ticketId" value="@Model.Id" />
+
+                    <select name="agentId" class="form-select form-select-sm">
+                        <option value="">-- wybierz agenta --</option>
+
+                        @foreach (var agent in ViewBag.Agents)
+                        {
+                            if (Model.AgentId == agent.Id)
+                            {
+                                <option value="@agent.Id" selected>
+                                    @agent.FirstName @agent.LastName
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="@agent.Id">
+                                    @agent.FirstName @agent.LastName
+                                </option>
+                            }
+                        }
+                    </select>
+
+                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                        Przypiszgit 
+                    </button>
+                </form>
+            }
+
+            @if (!isClosed && !isSuspended && User.IsInRole("Agent"))
+            {
+                <form asp-action="AssignAgent" method="post">
+                    <input type="hidden" name="ticketId" value="@Model.Id" />
+                    <input type="hidden" name="agentId" value="" />
+
+                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                        Przypisz do mnie
+                    </button>
+                </form>
+            }
+        </div>
+
+        <p>
+            <strong>Status:</strong>
+            <span class="badge bg-secondary">
+                @Model.Status?.Name
+            </span>
+        </p>
+
+        @if (!isClosed && canManageTickets)
+        {
+            <div class="mb-3">
+                @if (Model.StatusId == 1)
+                {
+                    <form asp-action="StartWork" method="post" class="d-inline">
+                        <input type="hidden" name="ticketId" value="@Model.Id" />
+
+                        <button type="submit" class="btn btn-primary">
+                            Rozpocznij pracę
+                        </button>
+                    </form>
+                }
+
+                @if (Model.StatusId == 2)
+                {
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <form asp-action="RequestCustomerResponse" method="post">
+                                <input type="hidden" name="ticketId" value="@Model.Id" />
+
+                                <label class="form-label">Powód odesłania do zgłaszającego</label>
+                                <textarea name="reason"
+                                          class="form-control"
+                                          rows="3"
+                                          placeholder="Np. potrzebne dodatkowe informacje od zgłaszającego..."
+                                          required></textarea>
+
+                                <button type="submit" class="btn btn-warning mt-2">
+                                    Poproś zgłaszającego o odpowiedź
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="col-md-6">
+                            <form asp-action="SuspendTicket" method="post">
+                                <input type="hidden" name="ticketId" value="@Model.Id" />
+
+                                <label class="form-label">Powód wstrzymania</label>
+                                <textarea name="reason"
+                                          class="form-control"
+                                          rows="3"
+                                          placeholder="Np. oczekiwanie na decyzję lub zasoby..."
+                                          required></textarea>
+
+                                <button type="submit" class="btn btn-dark mt-2">
+                                    Wstrzymaj zgłoszenie
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                }
+
+                @if (isSuspended)
+                {
+                    <form asp-action="ResumeTicket" method="post">
+                        <input type="hidden" name="ticketId" value="@Model.Id" />
+
+                        <button type="submit" class="btn btn-primary">
+                            Wznów zgłoszenie
+                        </button>
+                    </form>
+                }
+            </div>
+
+            @if (!isSuspended)
+            {
+                <form asp-action="CloseTicket" method="post" class="mt-3">
+                    <input type="hidden" name="ticketId" value="@Model.Id" />
+
+                    <div class="mb-2">
+                        <label class="form-label">Komentarz zamknięcia</label>
+                        <textarea name="closeComment"
+                                  class="form-control"
+                                  rows="3"
+                                  placeholder="Opisz, w jaki sposób zgłoszenie zostało zakończone..."
+                                  required></textarea>
+                    </div>
+
+                    <button type="submit"
+                            class="btn btn-danger"
+                            onclick="return confirm('Czy na pewno chcesz zamknąć zgłoszenie?');">
+                        Zamknij zgłoszenie
+                    </button>
+                </form>
+            }
+        }
+
+        @if (!isClosed && !isSuspended && Model.StatusId == 3 && canRespondToTeam)
+        {
+            <form asp-action="RespondToTeam" method="post" class="mt-3">
+                <input type="hidden" name="ticketId" value="@Model.Id" />
+
+                <label class="form-label">Odpowiedź dla zespołu</label>
+                <textarea name="content"
+                          class="form-control"
+                          rows="3"
+                          placeholder="Wpisz odpowiedź dla zespołu helpdesk..."
+                          required></textarea>
+
+                <button type="submit" class="btn btn-primary mt-2">
+                    Odpowiedz zespołowi
+                </button>
+            </form>
+        }
+
+        <hr />
+
+        <p>
+            <strong>Priorytet:</strong>
+
+            @{
+                var priorityClass = Model.Priority?.Name switch
+                {
+                    "Niski" => "bg-success",
+                    "Średni" => "bg-warning text-dark",
+                    "Wysoki" => "bg-danger",
+                    "Krytyczny" => "bg-dark",
+                    _ => "bg-secondary"
+                };
+            }
+
+            <span class="badge @priorityClass">
+                @Model.Priority?.Name
+            </span>
+        </p>
+
+
+        <p><strong>Kategoria:</strong> @(Model.Category?.Name ?? "Brak")</p>
+        <p><strong>Dział:</strong> @(Model.Department?.Name ?? "Brak")</p>
+
+        <hr />
+
+        <h5>Opis zgłoszenia</h5>
+
+        <p>
+            @(string.IsNullOrWhiteSpace(Model.Description)
+                ? "Brak opisu"
+                : Model.Description)
+        </p>
+    </div>
+
+    <hr />
+
+    <div class="card-body">
+        <details open>
+            <summary class="h3 mb-3">
+                Komentarze (@Model.Comments.Count)
+            </summary>
+
+            @if (Model.Comments.Any())
+            {
+                @foreach (var comment in Model.Comments.OrderByDescending(c => c.CreatedAt))
+                {
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <strong>
+                                @comment.User?.FirstName @comment.User?.LastName
+                            </strong>
+
+                            <small class="text-muted">
+                                (@comment.CreatedAt.ToString("yyyy-MM-dd HH:mm"))
+                            </small>
+
+                            <p class="mt-2 mb-0">
+                                @comment.Content
+                            </p>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p>Brak komentarzy.</p>
+            }
+
+            <hr />
+
+            @if (!isClosed && !isSuspended)
+            {
+                <h4>Dodaj komentarz</h4>
+
+                <form asp-action="AddComment" method="post">
+                    <input type="hidden" name="ticketId" value="@Model.Id" />
+
+                    <div class="mb-3">
+                        <textarea name="content"
+                                  class="form-control"
+                                  rows="4"
+                                  placeholder="Wpisz komentarz..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-success">
+                        Dodaj komentarz
+                    </button>
+                </form>
+            }
+            else if (isSuspended)
+            {
+                <p class="text-muted">
+                    Dodawanie komentarzy jest zablokowane, ponieważ zgłoszenie jest wstrzymane.
+                </p>
+            }
+            else
+            {
+                <p class="text-muted">
+                    Dodawanie komentarzy jest zablokowane, ponieważ zgłoszenie jest zamknięte.
+                </p>
+            }
+        </details>
+
+        <hr />
+
+        <details class="mt-3">
+            <summary class="h3">Historia zmian</summary>
+
+            @if (Model.History != null && Model.History.Any())
+            {
+                @foreach (var history in Model.History.OrderByDescending(h => h.HistoryCreatedAt))
+                {
+                    <div class="card mb-2 mt-2">
+                        <div class="card-body">
+                            <strong>@history.HistoryCreatedAt.ToString("yyyy-MM-dd HH:mm")</strong>
+
+                            <p class="mb-1">
+                                Status: @(history.Status?.Name ?? "Brak")
+                            </p>
+
+                            <p class="mb-1">
+                                Agent:
+                                @(history.Agent == null
+                                    ? "Nieprzypisany"
+                                    : $"{history.Agent.FirstName} {history.Agent.LastName}")
+                            </p>
+
+                            <small class="text-muted">
+                                Zmienione przez:
+                                @(history.ChangedByUser == null
+                                    ? "Brak danych"
+                                    : $"{history.ChangedByUser.FirstName} {history.ChangedByUser.LastName}")
+                            </small>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p>Brak historii zmian.</p>
+            }
+        </details>
+    </div>
+</div>

@@ -14,6 +14,7 @@ namespace Helpdesk_System.ViewModels.Tickets
 
         public int? DepartmentId { get; set; }
 
+        [Required(ErrorMessage = "Kategoria jest wymagana.")]
         public int? CategoryId { get; set; }
 
         [Required(ErrorMessage = "Priorytet jest wymagany.")]

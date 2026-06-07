@@ -1,0 +1,56 @@
+﻿@model Helpdesk_System.ViewModels.Tickets.TicketDashboardViewModel
+
+@{
+    ViewData["Title"] = "Statystyki";
+}
+
+<h1>Statystyki</h1>
+
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5>Wszystkie zgłoszenia</h5>
+                <h2>@Model.TotalTickets</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5>Nowe</h5>
+                <h2>@Model.NewTickets</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5>W toku</h5>
+                <h2>@Model.InProgressTickets</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5>Rozwiązane</h5>
+                <h2>@Model.ResolvedTickets</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5>Zamknięte</h5>
+                <h2>@Model.ClosedTickets</h2>
+            </div>
+        </div>
+    </div>
+
+</div>

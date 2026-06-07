@@ -2,37 +2,234 @@
 
 @{
     ViewData["Title"] = "Zgłoszenia";
+    var currentView = ViewBag.CurrentView as string ?? "active";
 }
 
-<h1>Zgłoszenia</h1>
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h3 mb-1">Panel zgłoszeń</h1>
+                <span class="text-muted">
+                    Przegląd i obsługa zgłoszeń
+                </span>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#filtersPanel"
+                        aria-expanded="false"
+                        aria-controls="filtersPanel">
+                    Filtry
+                </button>
+
+                <a asp-action="Create" class="btn btn-primary">
+                    + Nowe zgłoszenie
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-4">
+                <a asp-action="Index"
+                       asp-route-view="new"
+                       class="text-decoration-none">
+                    <div class="card h-100 @(currentView == "new" ? "border-primary shadow-sm" : "")">
+                        <div class="card-body">
+                            <h5 class="card-title mb-1">Nowe</h5>
+                            <p class="text-muted mb-0">
+                                Oczekujące na rozpoczęcie pracy
+                            </p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-md-4">
+                <a asp-action="Index"
+                       asp-route-view="active"
+                       class="text-decoration-none">
+                    <div class="card h-100 @(currentView == "active" ? "border-primary shadow-sm" : "")">
+                        <div class="card-body">
+                            <h5 class="card-title mb-1">Aktywne</h5>
+                            <p class="text-muted mb-0">
+                                W toku, wstrzymane lub oczekujące
+                            </p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-md-4">
+                <a asp-action="Index"
+                       asp-route-view="closed"
+                       class="text-decoration-none">
+                    <div class="card h-100 @(currentView == "closed" ? "border-primary shadow-sm" : "")">
+                        <div class="card-body">
+                            <h5 class="card-title mb-1">Archiwum</h5>
+                            <p class="text-muted mb-0">
+                                Zamknięte zgłoszenia
+                            </p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="collapse mb-4" id="filtersPanel">
+    <div class="card">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <input type="hidden" name="view" value="@currentView" />
+
+                <div class="col-md-4">
+                    <label class="form-label">Priorytet</label>
+                    <select name="priorityId" class="form-select">
+                        <option value="">Wszystkie</option>
+
+                        @foreach (var priority in ViewBag.Priorities)
+                        {
+                            if (ViewBag.SelectedPriorityId == priority.Id)
+                            {
+                                <option value="@priority.Id" selected>@priority.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@priority.Id">@priority.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Agent</label>
+                    <select name="agentId" class="form-select">
+                        <option value="">Wszyscy</option>
+
+                        @foreach (var agent in ViewBag.Agents)
+                        {
+                            if (ViewBag.SelectedAgentId == agent.Id)
+                            {
+                                <option value="@agent.Id" selected>
+                                    @agent.FirstName @agent.LastName
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="@agent.Id">
+                                    @agent.FirstName @agent.LastName
+                                </option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-outline-primary">
+                        Filtruj
+                    </button>
+
+                    <a asp-action="Index"
+                           asp-route-view="@currentView"
+                           class="btn btn-outline-secondary">
+                        Wyczyść
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">
+        @if (currentView == "new")
+        {
+            <span>Nowe zgłoszenia</span>
+        }
+        else if (currentView == "closed")
+        {
+            <span>Archiwum zgłoszeń</span>
+        }
+        else
+        {
+            <span>Aktywne zgłoszenia</span>
+        }
+    </h4>
+</div>
 
 @if (!Model.Any())
 {
-    <p>Brak zgłoszeń.</p>
+    <div class="alert alert-info">
+        Brak zgłoszeń w tej sekcji.
+    </div>
 }
 else
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Tytuł</th>
-                <th>Status</th>
-                <th>Priorytet</th>
-                <th>Data utworzenia</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var ticket in Model)
-            {
-                <tr>
-                    <td>@ticket.Id</td>
-                    <td>@ticket.Title</td>
-                    <td>@ticket.Status?.Name</td>
-                    <td>@ticket.Priority?.Name</td>
-                    <td>@ticket.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Tytuł</th>
+                        <th>Status</th>
+                        <th>Priorytet</th>
+                        <th>Data utworzenia</th>
+                        <th class="text-end">Akcje</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var ticket in Model)
+                    {
+                        <tr>
+                            <td>
+                                <a asp-action="Details"
+                                       asp-route-id="@ticket.Id"
+                                       class="text-decoration-none fw-semibold">
+                                    @ticket.Title
+                                </a>
+                            </td>
+
+                            <td>
+                                <span class="badge bg-secondary">
+                                    @ticket.Status?.Name
+                                </span>
+                            </td>
+
+                            <td>
+                                @{
+                                    var priorityClass = ticket.Priority?.Name switch
+                                    {
+                                        "Niski" => "bg-success",
+                                        "Średni" => "bg-warning text-dark",
+                                        "Wysoki" => "bg-danger",
+                                        "Krytyczny" => "bg-dark",
+                                        _ => "bg-secondary"
+                                    };
+                                }
+
+                                <span class="badge @priorityClass">
+                                    @ticket.Priority?.Name
+                                </span>
+                            </td>
+
+                            <td>@ticket.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+
+                            <td class="text-end">
+                                <a asp-action="Details"
+                                       asp-route-id="@ticket.Id"
+                                       class="btn btn-sm btn-outline-primary">
+                                    Szczegóły
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 }
