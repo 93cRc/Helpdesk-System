@@ -333,6 +333,17 @@ namespace Helpdesk_System.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "categories",
+                columns: new[] { "id", "created_at", "is_active", "name", "sort_order", "updated_at" },
+                values: new object[,]
+                {
+                    { 1, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "Hardware", 0, null },
+                    { 2, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "Software", 1, null },
+                    { 3, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "Konta i uprawnienia", 2, null },
+                    { 4, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "Sieć", 3, null }
+                });
+
+            migrationBuilder.InsertData(
                 table: "departments",
                 columns: new[] { "id", "created_at", "is_active", "name", "sort_order", "updated_at" },
                 values: new object[,]
@@ -345,6 +356,18 @@ namespace Helpdesk_System.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "priorities",
+                columns: new[] { "id", "code", "created_at", "is_active", "name", "sort_order", "updated_at" },
+                values: new object[,]
+                {
+                    { 1, "none", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "Brak", 0, null },
+                    { 2, "low", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "Niski", 1, null },
+                    { 3, "medium", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "Średni", 2, null },
+                    { 4, "high", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "Wysoki", 3, null },
+                    { 5, "critical", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "Krytyczny", 4, null }
+                });
+
+            migrationBuilder.InsertData(
                 table: "roles",
                 columns: new[] { "id", "created_at", "is_active", "name", "sort_order", "updated_at" },
                 values: new object[,]
@@ -352,6 +375,20 @@ namespace Helpdesk_System.Migrations
                     { 1, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "Admin", 0, null },
                     { 2, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "Agent", 1, null },
                     { 3, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "Requestor", 2, null }
+                });
+
+            migrationBuilder.InsertData(
+                table: "statuses",
+                columns: new[] { "id", "code", "created_at", "is_active", "name", "sort_order", "updated_at" },
+                values: new object[,]
+                {
+                    { 1, "new", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "Nowe", 0, null },
+                    { 2, "in_progress", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "W toku", 1, null },
+                    { 3, "waiting_for_requestor", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "Oczekuje na zgłaszającego", 2, null },
+                    { 4, "waiting_for_team", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "Oczekuje na zespół", 3, null },
+                    { 5, "on_hold", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "Wstrzymane", 4, null },
+                    { 6, "resolved", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "Rozwiązane", 5, null },
+                    { 7, "closed", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "Zamknięte", 6, null }
                 });
 
             migrationBuilder.InsertData(

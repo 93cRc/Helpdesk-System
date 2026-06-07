@@ -4,17 +4,29 @@ using Helpdesk_System.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
+// login:password for first login as admin is admin@firma.pl:Admin.123
+// login:password for first login as admin is admin@firma.pl:Admin.123
+// login:password for first login as admin is admin@firma.pl:Admin.123
+
 var builder = WebApplication.CreateBuilder(args);
+
+// login:password for first login as admin is admin@firma.pl:Admin.123
+// login:password for first login as admin is admin@firma.pl:Admin.123
+// login:password for first login as admin is admin@firma.pl:Admin.123
 
 builder.Configuration
     .SetBasePath(builder.Environment.ContentRootPath)
-    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)/*
 #if DEBUG
-    //.AddJsonFile("appsettings.Dev.json", optional: true, reloadOnChange: true)
+    .AddJsonFile("appsettings.Dev.json", optional: true, reloadOnChange: true)
 #else
-	//.AddJsonFile("appsettings.Prod.json", optional: true, reloadOnChange: true)
-#endif
-    .AddEnvironmentVariables();
+	.AddJsonFile("appsettings.Prod.json", optional: true, reloadOnChange: true)
+#endif*/
+	.AddEnvironmentVariables();
+
+// login:password for first login as admin is admin@firma.pl:Admin.123
+// login:password for first login as admin is admin@firma.pl:Admin.123
+// login:password for first login as admin is admin@firma.pl:Admin.123
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Brak connection stringa o nazwie 'DefaultConnection'.");
@@ -56,6 +68,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+
+builder.Services.AddScoped<ITicketRatingService, TicketRatingService>();
 
 var app = builder.Build();
 

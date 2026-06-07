@@ -77,7 +77,7 @@ namespace Helpdesk_System.Data.Configurations {
 					LastName = "Krakowiak",
 					Email = "admin@firma.pl",
 					Phone = null,
-					PasswordHash = "$2b$12$LxOxtse..3EaSbWJqFHlRerxBudpeHpvgA5fhRamMO.PbFqWS6UJu",
+					PasswordHash = "$2b$12$LxOxtse..3EaSbWJqFHlRerxBudpeHpvgA5fhRamMO.PbFqWS6UJu", // Admin.123
 					RoleId = 1,
 					DepartmentId = null,
 					IsActive = true,
