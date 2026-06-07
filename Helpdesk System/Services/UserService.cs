@@ -278,7 +278,7 @@ namespace Helpdesk_System.Services {
 
 			departments.Insert(0, new SelectListItem {
 				Value = string.Empty,
-				Text = "< brak działu >",
+				//Text = "< brak działu >",
 				Selected = !selectedDepartmentId.HasValue
 			});
 
