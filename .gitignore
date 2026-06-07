@@ -15,9 +15,9 @@ appsettings.Dev.json
 appsettings.Test.json
 appsettings.Int.json
 appsettings.Prod.json
-*.db
-*.db-shm
-*.db-wal
+#*.db
+#*.db-shm
+#*.db-wal
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
