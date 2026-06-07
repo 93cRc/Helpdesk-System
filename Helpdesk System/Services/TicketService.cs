@@ -27,6 +27,7 @@ namespace Helpdesk_System.Services
                 .Include(t => t.Status)
                 .Include(t => t.Priority)
                 .Include(t => t.Category)
+                .Include(t => t.Ratings)
                 .AsQueryable();
 
             if (roleName == "Requestor" && currentUserId.HasValue)
@@ -66,6 +67,12 @@ namespace Helpdesk_System.Services
                 .Include(t => t.Comments)
                     .ThenInclude(c => c.User)
 
+                .Include(t => t.Comments)
+                    .ThenInclude(c => c.User)
+
+                .Include(t => t.Ratings)
+                    .ThenInclude(r => r.User)
+
                 .Include(t => t.History)
                     .ThenInclude(h => h.Status)
 
@@ -74,6 +81,8 @@ namespace Helpdesk_System.Services
 
                 .Include(t => t.History)
                     .ThenInclude(h => h.ChangedByUser)
+
+
 
                 .FirstOrDefaultAsync(t => t.Id == id);
         }

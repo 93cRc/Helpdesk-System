@@ -31,11 +31,12 @@ namespace Helpdesk_System.Controllers {
 				return NotFound();
 			}
 
-			if (ticket.RequestorId != currentUserId.Value) {
-				return Forbid();
-			}
+            if (!User.IsInRole("Admin") && ticket.RequestorId != currentUserId.Value)
+            {
+                return Forbid();
+            }
 
-			if (ticket.StatusId != ResolvedStatusId && ticket.StatusId != ClosedStatusId) {
+            if (ticket.StatusId != ResolvedStatusId && ticket.StatusId != ClosedStatusId) {
 
 				return RedirectToAction("Details", "Tickets", new { id = ticketId });
 			}
@@ -80,12 +81,13 @@ namespace Helpdesk_System.Controllers {
 			}
 
 			try {
-				await _ticketRatingService.CreateAsync(
-					model.TicketId,
-					currentUserId.Value,
-					model.Rating,
-					model.Content);
-			}
+                await _ticketRatingService.CreateAsync(
+                    model.TicketId,
+                    currentUserId.Value,
+                    model.Rating,
+                    model.Content,
+                    User.IsInRole("Admin"));
+            }
 			catch (KeyNotFoundException) {
 				return NotFound();
 			}

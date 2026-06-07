@@ -13,6 +13,11 @@
     var canRespondToTeam =
         User.IsInRole("Admin") ||
         User.IsInRole("Requestor");
+
+    var canRateTicket =
+        isClosed &&
+        (User.IsInRole("Admin") || User.IsInRole("Requestor")) &&
+        (Model.Ratings == null || !Model.Ratings.Any());
 }
 
 <h1>Szczegóły zgłoszenia</h1>
@@ -26,17 +31,29 @@
     <div class="alert alert-secondary">
         To zgłoszenie jest zamknięte.
     </div>
-}
 
-@if (isClosed && User.IsInRole("Admin"))
-{
-    <form asp-action="ReopenTicket" method="post" class="mb-3">
-        <input type="hidden" name="ticketId" value="@Model.Id" />
+    <div class="d-flex gap-2 mb-3">
+        @if (User.IsInRole("Admin"))
+        {
+            <form asp-action="ReopenTicket" method="post">
+                <input type="hidden" name="ticketId" value="@Model.Id" />
 
-        <button type="submit" class="btn btn-warning">
-            Otwórz ponownie zgłoszenie
-        </button>
-    </form>
+                <button type="submit" class="btn btn-warning">
+                    Otwórz ponownie zgłoszenie
+                </button>
+            </form>
+        }
+
+        @if (canRateTicket)
+        {
+            <button type="button"
+                    class="btn btn-primary"
+                    data-bs-toggle="modal"
+                    data-bs-target="#ratingModal">
+                Oceń zgłoszenie
+            </button>
+        }
+    </div>
 }
 
 @if (isSuspended)
@@ -90,7 +107,7 @@
                     </select>
 
                     <button type="submit" class="btn btn-sm btn-outline-primary">
-                        Przypiszgit 
+                        Przypisz
                     </button>
                 </form>
             }
@@ -242,7 +259,6 @@
             </span>
         </p>
 
-
         <p><strong>Kategoria:</strong> @(Model.Category?.Name ?? "Brak")</p>
         <p><strong>Dział:</strong> @(Model.Department?.Name ?? "Brak")</p>
 
@@ -255,6 +271,44 @@
                 ? "Brak opisu"
                 : Model.Description)
         </p>
+
+        @if (Model.Ratings != null && Model.Ratings.Any())
+        {
+            var rating = Model.Ratings.First();
+
+            <hr />
+
+            <h5>Ocena zgłoszenia</h5>
+
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="mb-2">
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            if (i <= rating.Rating)
+                            {
+                                <span style="font-size: 24px; color: #ffc107;">★</span>
+                            }
+                            else
+                            {
+                                <span style="font-size: 24px; color: #dee2e6;">★</span>
+                            }
+                        }
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(rating.Content))
+                    {
+                        <p class="mb-1">
+                            <strong>Komentarz:</strong> @rating.Content
+                        </p>
+                    }
+
+                    <small class="text-muted">
+                        Oceniono: @rating.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+                    </small>
+                </div>
+            </div>
+        }
     </div>
 
     <hr />
@@ -367,3 +421,87 @@
         </details>
     </div>
 </div>
+
+@if (canRateTicket)
+{
+    <div class="modal fade" id="ratingModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form asp-controller="TicketRatings"
+                      asp-action="Create"
+                      method="post">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Oceń zgłoszenie</h5>
+
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Zamknij">
+                        </button>
+                    </div>
+
+                    <div class="modal-body">
+                        <input type="hidden" name="TicketId" value="@Model.Id" />
+                        <input type="hidden" name="Rating" id="ratingValue" required />
+
+                        <div class="mb-3">
+                            <label class="form-label">Ocena</label>
+
+                            <div id="ratingStars" style="font-size: 32px; cursor: pointer;">
+                                <span data-value="1">☆</span>
+                                <span data-value="2">☆</span>
+                                <span data-value="3">☆</span>
+                                <span data-value="4">☆</span>
+                                <span data-value="5">☆</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Komentarz</label>
+
+                            <textarea name="Content"
+                                      class="form-control"
+                                      rows="4"
+                                      placeholder="Dodaj komentarz do oceny..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button"
+                                class="btn btn-secondary"
+                                data-bs-dismiss="modal">
+                            Anuluj
+                        </button>
+
+                        <button type="submit" class="btn btn-primary">
+                            Zapisz ocenę
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        const stars = document.querySelectorAll("#ratingStars span");
+        const ratingInput = document.getElementById("ratingValue");
+
+        if (stars && ratingInput) {
+            stars.forEach(star => {
+                star.addEventListener("click", function () {
+                    const selectedValue = parseInt(this.getAttribute("data-value"));
+                    ratingInput.value = selectedValue;
+
+                    stars.forEach(s => {
+                        const value = parseInt(s.getAttribute("data-value"));
+                        s.textContent = value <= selectedValue ? "★" : "☆";
+                        s.style.color = value <= selectedValue ? "#ffc107" : "#6c757d";
+                    });
+                });
+            });
+        }
+    </script>
+}

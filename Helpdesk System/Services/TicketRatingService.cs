@@ -25,7 +25,8 @@ namespace Helpdesk_System.Services {
 				.AnyAsync(r => r.TicketId == ticketId);
 		}
 
-		public async Task CreateAsync(int ticketId, int userId, byte rating, string? content) {
+        public async Task CreateAsync(int ticketId, int userId, byte rating, string? content, bool isAdmin = false)
+        {
 			if (rating < 1 || rating > 5) {
 				throw new ArgumentOutOfRangeException(nameof(rating), "Ocena musi mieścić się w zakresie od 1 do 5.");
 			}
@@ -37,11 +38,12 @@ namespace Helpdesk_System.Services {
 				throw new KeyNotFoundException("Nie znaleziono zgłoszenia.");
 			}
 
-			if (ticket.RequestorId != userId) {
-				throw new UnauthorizedAccessException("Tylko autor zgłoszenia może je ocenić.");
-			}
+            if (!isAdmin && ticket.RequestorId != userId)
+            {
+                throw new UnauthorizedAccessException("Tylko autor zgłoszenia może je ocenić.");
+            }
 
-			if (ticket.StatusId != ResolvedStatusId && ticket.StatusId != ClosedStatusId) {
+            if (ticket.StatusId != ResolvedStatusId && ticket.StatusId != ClosedStatusId) {
 				throw new InvalidOperationException("Można ocenić wyłącznie rozwiązane lub zamknięte zgłoszenie.");
 			}
 

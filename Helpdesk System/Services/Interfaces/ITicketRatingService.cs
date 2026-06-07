@@ -6,6 +6,6 @@ namespace Helpdesk_System.Services.Interfaces {
 
 		Task<bool> HasRatingAsync(int ticketId);
 
-		Task CreateAsync(int ticketId, int userId, byte rating, string? content);
-	}
+        Task CreateAsync(int ticketId, int userId, byte rating, string? content, bool isAdmin = false);
+    }
 }

@@ -178,6 +178,10 @@ else
                         <th>Status</th>
                         <th>Priorytet</th>
                         <th>Data utworzenia</th>
+                        @if (currentView == "closed")
+                        {
+                            <th>Ocena</th>
+                        }
                         <th class="text-end">Akcje</th>
                     </tr>
                 </thead>
@@ -218,6 +222,34 @@ else
                             </td>
 
                             <td>@ticket.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+
+                            @if (currentView == "closed")
+                            {
+                                <td>
+                                    @if (ticket.Ratings != null && ticket.Ratings.Any())
+                                    {
+                                        var rating = ticket.Ratings.First();
+
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            if (i <= rating.Rating)
+                                            {
+                                                <span style="color: #ffc107;">★</span>
+                                            }
+                                            else
+                                            {
+                                                <span style="color: #dee2e6;">★</span>
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Brak</span>
+                                    }
+                                </td>
+}
+
+
 
                             <td class="text-end">
                                 <a asp-action="Details"
