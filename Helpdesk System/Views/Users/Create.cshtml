@@ -1,5 +1,75 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@model Helpdesk_System.ViewModels.Users.UserCreateViewModel
+
+<div class="mb-4">
+    <h1 class="mb-1">Dodaj użytkownika</h1>
+    <p class="text-muted mb-0">Utwórz nowe konto użytkownika</p>
+</div>
+
+<div class="card">
+    <div class="card-header fw-bold">
+        Nowy użytkownik
+    </div>
+
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="FirstName" class="form-label"></label>
+                    <input asp-for="FirstName" class="form-control" />
+                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="LastName" class="form-label"></label>
+                    <input asp-for="LastName" class="form-control" />
+                    <span asp-validation-for="LastName" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Phone" class="form-label"></label>
+                    <input asp-for="Phone" class="form-control" />
+                    <span asp-validation-for="Phone" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="RoleId" class="form-label"></label>
+                    <select asp-for="RoleId" asp-items="Model.Roles" class="form-select">
+                        <option value="">Wybierz rolę</option>
+                    </select>
+                    <span asp-validation-for="RoleId" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="DepartmentId" class="form-label"></label>
+                    <select asp-for="DepartmentId" asp-items="Model.Departments" class="form-select">
+                        <option value="">Brak działu</option>
+                    </select>
+                    <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="alert alert-light border mt-4">
+                Hasło zostanie wygenerowane automatycznie po utworzeniu konta.
+            </div>
+
+            <div class="d-flex gap-2 mt-3">
+                <button type="submit" class="btn btn-outline-primary">Dodaj</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Powrót</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

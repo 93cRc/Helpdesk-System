@@ -53,6 +53,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddScoped<IPasswordHasherService, PasswordHasherService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 
