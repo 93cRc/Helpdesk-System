@@ -8,6 +8,7 @@
 
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Helpdesk_System.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
 </head>
 <body>
     <header class="app-header">
@@ -23,6 +24,7 @@
 
                     @if (User.IsInRole("Admin")) {
                         <a asp-controller="Users" asp-action="Index">Użytkownicy</a>
+                        <a asp-controller="Departments" asp-action="Index">Działy</a>
                         <a asp-controller="Categories" asp-action="Index">Kategorie</a>
                     }
 
