@@ -1,0 +1,53 @@
+﻿@model Helpdesk_System.ViewModels.Users.UserDeactivateViewModel
+
+<div class="mb-4">
+    <h1 class="mb-1">Dezaktywuj użytkownika</h1>
+    <p class="text-muted mb-0">Potwierdź dezaktywację konta użytkownika</p>
+</div>
+
+<div class="card">
+    <div class="card-header fw-bold">
+        Dezaktywacja użytkownika
+    </div>
+
+    <div class="card-body">
+        @if (!Model.IsActive) {
+            <div class="alert alert-light border">
+                Ten użytkownik jest już nieaktywny.
+            </div>
+        }
+        else {
+            <div class="alert alert-warning border">
+                Czy na pewno chcesz dezaktywować tego użytkownika?
+            </div>
+        }
+
+        <dl class="row">
+            <dt class="col-sm-3">ID</dt>
+            <dd class="col-sm-9">@Model.Id</dd>
+
+            <dt class="col-sm-3">Użytkownik</dt>
+            <dd class="col-sm-9" style="color: #3d5a80; font-weight: 700;">@Model.FullName</dd>
+
+            <dt class="col-sm-3">Email</dt>
+            <dd class="col-sm-9">@Model.Email</dd>
+
+            <dt class="col-sm-3">Rola</dt>
+            <dd class="col-sm-9">@Model.RoleName</dd>
+
+            <dt class="col-sm-3">Dział</dt>
+            <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.DepartmentName) ? "-" : Model.DepartmentName)</dd>
+        </dl>
+
+        <div class="d-flex gap-2 mt-4">
+            @if (Model.IsActive) {
+                <form asp-action="DeactivateConfirmed" asp-route-id="@Model.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-danger">Dezaktywuj</button>
+                </form>
+            }
+
+            <a asp-action="Index" class="btn btn-outline-secondary">Anuluj</a>
+        </div>
+    </div>
+</div>

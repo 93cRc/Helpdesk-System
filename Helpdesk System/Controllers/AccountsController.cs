@@ -22,7 +22,7 @@ namespace Helpdesk_System.Controllers {
 		[AllowAnonymous]
 		public IActionResult Login() {
 			if (User.Identity?.IsAuthenticated == true) {
-				return RedirectToAction("Index", "Home");
+				return RedirectToAction("Index", "Tickets");
 			}
 
 			return View(new LoginViewModel());
@@ -39,12 +39,19 @@ namespace Helpdesk_System.Controllers {
 			var user = await _context.Users
 				.Include(x => x.Role)
 				.Include(x => x.Department)
-				.FirstOrDefaultAsync(x => x.Email == model.Email && x.IsActive);
+				.FirstOrDefaultAsync(x =>
+					x.Email == model.Email &&
+					x.IsActive);
 
 			if (user == null || !_passwordHasherService.VerifyPassword(model.Password, user.PasswordHash)) {
-				ModelState.AddModelError(string.Empty, "Nieprawidłowy e-mail lub hasło.");
+				ModelState.AddModelError(
+					string.Empty,
+					"Nieprawidłowy e-mail lub hasło.");
+
 				return View(model);
 			}
+
+			bool mustChangePassword = user.LastLoginAt == null;
 
 			var claims = new List<Claim>
 			{
@@ -53,7 +60,8 @@ namespace Helpdesk_System.Controllers {
 				new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
 				new Claim(ClaimTypes.Role, user.Role.Name),
 				new Claim("FirstName", user.FirstName),
-				new Claim("LastName", user.LastName)
+				new Claim("LastName", user.LastName),
+				new Claim("MustChangePassword", mustChangePassword.ToString())
 			};
 
 			if (user.DepartmentId.HasValue) {
@@ -70,13 +78,11 @@ namespace Helpdesk_System.Controllers {
 					: DateTimeOffset.UtcNow.AddHours(8)
 			};
 
-			user.LastLoginAt = DateTime.Now;
-			await _context.SaveChangesAsync();
+			await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, authProperties);
 
-			await HttpContext.SignInAsync(
-				CookieAuthenticationDefaults.AuthenticationScheme,
-				principal,
-				authProperties);
+			if (mustChangePassword) {
+				return RedirectToAction(nameof(ChangePassword));
+			}
 
 			return RedirectToAction("Index", "Tickets");
 		}
@@ -93,6 +99,74 @@ namespace Helpdesk_System.Controllers {
 		[AllowAnonymous]
 		public IActionResult AccessDenied() {
 			return View();
+		}
+
+		[HttpGet]
+		[Authorize]
+		public IActionResult ChangePassword() {
+			return View(new ChangePasswordViewModel());
+		}
+
+		[HttpPost]
+		[Authorize]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model) {
+			if (!ModelState.IsValid) {
+				return View(model);
+			}
+
+			var userIdValue = User.FindFirstValue(
+				ClaimTypes.NameIdentifier);
+
+			if (!int.TryParse(userIdValue, out int userId)) {
+				await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+				return RedirectToAction(nameof(Login));
+			}
+
+			var user = await _context.Users
+				.FirstOrDefaultAsync(x =>
+					x.Id == userId &&
+					x.IsActive);
+
+			if (user == null) {
+				await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+				return RedirectToAction(nameof(Login));
+			}
+
+			if (!_passwordHasherService.VerifyPassword(model.CurrentPassword, user.PasswordHash)) {
+				ModelState.AddModelError(
+					nameof(model.CurrentPassword),
+					"Aktualne hasło jest nieprawidłowe.");
+
+				return View(model);
+			}
+
+			if (_passwordHasherService.VerifyPassword(model.NewPassword, user.PasswordHash)) {
+				ModelState.AddModelError(
+					nameof(model.NewPassword),
+					"Nowe hasło musi być inne niż aktualne hasło.");
+
+				return View(model);
+			}
+
+			user.PasswordHash =
+				_passwordHasherService.HashPassword(
+					model.NewPassword);
+
+			user.LastLoginAt = DateTime.Now;
+			user.UpdatedAt = DateTime.Now;
+
+			await _context.SaveChangesAsync();
+
+			await HttpContext.SignOutAsync(
+				CookieAuthenticationDefaults.AuthenticationScheme);
+
+			TempData["SuccessMessage"] =
+				"Hasło zostało zmienione. Zaloguj się ponownie nowym hasłem.";
+
+			return RedirectToAction(nameof(Login));
 		}
 	}
 }
